@@ -49,10 +49,14 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 ### Set-up project (Ubuntu)
 
 #### Elastic Search Intallation
-- `wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg`
-- `cho "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list`
-- `sudo apt update`
-- `sudo apt install elasticsearch`
+- Add its repository and update the GPG key: `wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg`
+- Add the Elasticsearch repository to the system's apt sources list: `echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list`
+- Update packages: `sudo apt update`
+- Install Elasticsearch from the repository: `sudo apt install elasticsearch`
+- start the Elasticsearch service manually: `sudo systemctl daemon-reload`.
+- Configure Elasticsearch to start automatically during system boot: `sudo systemctl enable elasticsearch.service`
+- Start elatic search: `sudo systemctl start elasticsearch.service`
+- Check status: `sudo systemctl status elasticsearch.service`
 
 ### Set-up project (Windows)
 TBD
