@@ -1,10 +1,20 @@
 # Podcast search
 
-Authors: 
+## Table of Contents
+- [Authors](#authors)
+- [General Information of the project](#general-information-of-the-project)
+- [Technical information and set-up](#technical-information-and-set-up)
+- [Tasks](#tasks)
+- [Others](#others)
+
+## Authors: 
 - 	Léonard Belenge Dalnor: lbd@kth.se
 -   Baptiste Boutaud de la Combe: boabdlc@kth.se
 -   Laura Pareja Prieto: laurapp@kth.se
 -   Jun Wei Serena Wang: jwswang@kth.se
+
+
+## General Information of the project
 
 Wouldn’t it be great to find podcasts that discuss exactly what you are interested in at the moment? Or even better, to find the exact part of the podcast that discusses your topic of interest?  The task is to:
 
@@ -15,5 +25,15 @@ Wouldn’t it be great to find podcasts that discuss exactly what you are intere
 3.  The relevant portions of the transcriptions of the clips can be shown as search results.
 
 This task is inspired by the TREC 2020 podcasts track, task 1. More information on: https://www.aclweb.org/portal/content/trec-2020-podcasts-track-guidelines
+
+## Technical information and set-up
+
+
+## Tasks
+
+
+## Others
+
+
 
 
