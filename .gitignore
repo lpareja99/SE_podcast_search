@@ -8,7 +8,7 @@
 *.tar
 
 # Environment files
-
+.env
 .env.mine
 
 # Certificates
