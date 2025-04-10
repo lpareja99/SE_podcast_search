@@ -65,12 +65,13 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
     def get_es():
         return Elasticsearch(
             hosts=["https://localhost:9200"],
-            http_auth=({your_user}, {your_password}),  
+            http_auth=(os.getenv("ELASTIC_USERNAME"), os.getenv("ELASTIC_PASSWORD")),  
             verify_certs=True,
             ca_certs="http_ca.crt",
         )
 '''
-
+- Add your username and password to `backend/.env` and install `pip install python-dotenv`
+ 
 ### Kibana instalation (to be able to see the data of elastic search)
 - `sudo apt update`
 - `sudo apt install kibana`
