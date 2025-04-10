@@ -31,7 +31,7 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 ### Technical Info 
 - Elastic Search 
 - Front End:
-    - Posibel frameworks:
+    - Posible frameworks:
         - Angular: https://v16.angular.io/docs
         - React: https://react.dev/
         - Flutter: https://flutter.dev/
@@ -46,13 +46,19 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
     - Python: https://docs.python.org/3.12/tutorial/index.html
     - Node.js: https://nodejs.org/en && https://www.elastic.co/guide/en/cloud/current/ec-getting-started-node-js.html
 
-### Set-up project 
+### Set-up project (Ubuntu)
 
-- Elastic Search: 
+#### Elastic Search Intallation
+- `wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg`
+- `cho "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list`
+- `sudo apt update`
+- `sudo apt install elasticsearch`
 
-- 
+### Set-up project (Windows)
+TBD
 
-
+### Set-up project (Mac)
+TBD
 
 ## Tasks
 
