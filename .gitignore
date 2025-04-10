@@ -1,6 +1,6 @@
 /podcasts-no-audio-13GB
 /venv
-/__pycache__
+backend/__pycache__
 
 # zip files
 *.zip
