@@ -28,6 +28,31 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 
 ## Technical information and set-up
 
+### Technical Info 
+- Elastic Search 
+- Front End:
+    - Posibel frameworks:
+        - Angular: https://v16.angular.io/docs
+        - React: https://react.dev/
+        - Flutter: https://flutter.dev/
+        - Vue: https://vuejs.org/
+    - Possible styling tools:
+        - Bootstrap: https://vuejs.org/
+        - Tailwind: https://tailwindcss.com/docs/installation/using-postcss
+        - Material UI: https://mui.com/material-ui/?srsltid=AfmBOoqnoV-yBmk9uhwxMkZ-mck2v0gOfdXI4yKC4C-8wbU_9qS2iXqh
+
+- Back End:
+    - Flask: https://flask.palletsprojects.com/en/stable/
+    - Python: https://docs.python.org/3.12/tutorial/index.html
+    - Node.js: https://nodejs.org/en && https://www.elastic.co/guide/en/cloud/current/ec-getting-started-node-js.html
+
+### Set-up project 
+
+- Elastic Search: 
+
+- 
+
+
 
 ## Tasks
 
