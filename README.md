@@ -7,6 +7,7 @@
 - [Tasks](#tasks)
 - [Project Info](#project-info)
 
+
 ## Authors: 
 - 	Léonard Belenge Dalnor: lbd@kth.se
 -   Baptiste Boutaud de la Combe: boabdlc@kth.se
@@ -57,6 +58,31 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 - Configure Elasticsearch to start automatically during system boot: `sudo systemctl enable elasticsearch.service`
 - Start elatic search: `sudo systemctl start elasticsearch.service`
 - Check status: `sudo systemctl status elasticsearch.service`
+- Add cert to the backend folder: `sudo mv /etc/elasticsearch/certs/http_ca.crt /backend/`
+- Ensure certificafe has the right permissions: `sudo chmod 644 http_ca.crt`
+- Add it to the config.py file:
+'''
+    def get_es():
+        return Elasticsearch(
+            hosts=["https://localhost:9200"],
+            http_auth=({your_user}, {your_password}),  
+            verify_certs=True,
+            ca_certs="http_ca.crt",
+        )
+'''
+
+### Kibana instalation (to be able to see the data of elastic search)
+- `sudo apt update`
+- `sudo apt install kibana`
+- `sudo systemctl enable kibana`
+- `sudo systemctl start kibana`
+- `sudo systemctl status kibana`
+- Open browser on: http://localhost:5601
+- Obtain elastic token: `sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana`
+- Obtain verification code: `sudo journalctl -u kibana | grep "verification code"`
+
+Useful parts of kirbana:
+- Tryout calls and endpoints: http://localhost:5601/app/dev_tools#/console/shell
 
 #### DB
 
@@ -64,16 +90,30 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 
 - Copy file to your project repo
 - Unzip file:  `unzip podcasts-no-audio-13GB.zip`
-
-- Unzip tar files with transcripts(it would take a while): `mkdir -p transcripts && for f in podcasts-transcripts-*.tar.gz; do tar -xvzf "$f" -C ./transcripts/; done`
-
-
+- Unzip tar files:
+    - Transcripts(it would take a while): `mkdir -p transcripts && for f in podcasts-transcripts-*.tar.gz; do tar -xvzf "$f" -C ./transcripts/; done`
+    - spotify-podcasts-2020-summarization-testset: `mkdir -p summarization-testset && for f in spotify-podcasts-2020-summarization-testset.tar.gz; do tar -xvzf "$f" -C ./summarization-testset/; done`
+    - Show-rrs: `mkdir -p show-rss && for f in show-rss.tar.gz; do tar -xvzf "$f" -C ./show-rss/; done`
+    - Scripts: `mkdir -p scripts && for f in scripts.tar.gz; do tar -xvzf "$f" -C ./scripts/; done`
+    - Metadata: `mkdir -p metadata && for f in metadata.tar.gz; do tar -xvzf "$f" -C ./metadata/; done`
 
 #### Pyhton
 
+- Install python and pip if not installed
+- Create virtual environment: `python3 -m venv venv`
+- Activate veirtual environment: `source venv/bin/activate`
+
 #### Flask 
 - `pip install -r requirements.txt`
-- `python app.py`uniz
+- `python app.py`
+
+#### Populate indexes on ElasticSearch 
+- Populate Metadata:
+    - Go to `/backend` folder.
+    - If not already, copy your CA to teh backend folder and add your user and your passwrod to the `config.py` file.
+    - Run `python3 load_metadata.py`
+    - If succesfull check call by `curl --cacert http_ca.crt -X GET "https://localhost:9200/episodes/_search?pretty" -u elastic` input teh password and it should return json objects.
+    - With Kibana access http://localhost:5601/app/dev_tools#/console/shell add `GET episodes/_count` and check that it return 105360.
 
 #### React 
 
@@ -88,6 +128,7 @@ TBD
 
 
 ## Project Info 
+
 README - Spotify Podcasts 2020 Dataset
 ======
 

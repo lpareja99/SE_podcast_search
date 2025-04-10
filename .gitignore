@@ -1,1 +1,28 @@
 /podcasts-no-audio-13GB
+/venv
+/__pycache__
+
+# zip files
+*.zip
+*.tar.gz
+*.tar
+
+# Environment files
+
+.env.mine
+
+# Certificates
+*.crt
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Node.js dependencies (if applicable)
+node_modules/
