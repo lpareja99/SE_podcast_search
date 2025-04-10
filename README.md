@@ -111,6 +111,9 @@ Useful parts of kirbana:
 
 #### React 
 
+- Install react
+- Install `pip install flask-cors`
+
 
 ### Set-up project (Windows)
 TBD

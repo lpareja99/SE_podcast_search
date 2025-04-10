@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify, render_template
-from es_config import get_es
+from config import get_es
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
 es = get_es()
 INDEX_NAME = "episodes"
 
