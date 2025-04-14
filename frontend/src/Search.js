@@ -13,6 +13,7 @@ const Search = () => {
     const [searchType, setSearchType] = useState("intersection");
     const [rankingType, setRankingType] = useState("relevance");
     const [timeRange, setTimeRange] = useState(1); 
+    const [isAccordionOpen, setIsAccordionOpen] = useState(false); // State for accordion
 
     const handleSearch = async () => {
         const params = new URLSearchParams({
@@ -38,81 +39,98 @@ const Search = () => {
         <div className="container mt-5 search-container">
             <h1 className="text-center mb-4 podcast-title">Advanced Podcast Search</h1>
 
-            <div className="row justify-content-center">
-                <div className="">
-                    <div className="search-controls p-4 rounded shadow-sm bg-white">
+            {/* Main Search Bar */}
+            <div className="d-flex align-items-center gap-2 mb-4 ">
+                <input
+                    type="text"
+                    className="form-control search-bar"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search for podcasts..."
+                />
+                <button className="btn search-icon-btn" onClick={handleSearch}>
+                    <i className="bi bi-search"></i>
+                </button>
+            </div>
 
-                        {/* Search Input Row */}
-                        <div className="d-flex align-items-center gap-2 mb-4">
-                            <input
-                                type="text"
-                                className="form-control search-bar"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search for podcasts..."
-                            />
-                            <button className="btn search-icon-btn" onClick={handleSearch}>
-                                <i className="bi bi-search"></i>
-                            </button>
-                        </div>
+            {/* Accordion for Advanced Search */}
+            <div className="accordion" id="advancedSearchAccordion">
+                <div className="accordion-item">
+                    <h2 className="accordion-header" id="headingOne">
+                        <button
+                            className={`accordion-button ${isAccordionOpen ? "" : "collapsed"}`}
+                            type="button"
+                            onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+                            aria-expanded={isAccordionOpen}
+                            aria-controls="collapseOne"
+                        >
+                            Advanced Search
+                        </button>
+                    </h2>
+                    <div
+                        id="collapseOne"
+                        className={`accordion-collapse collapse ${isAccordionOpen ? "show" : ""}`}
+                        aria-labelledby="headingOne"
+                        data-bs-parent="#advancedSearchAccordion"
+                    >
+                        <div className="accordion-body">
+                                {/* Filters Row */}
+                                <div className="d-flex gap-2 justify-content-center">
+                                    {/* Search Type */}
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Search Type</label>
+                                        <div className="d-flex justify-content-center filter-block gap-1">
+                                            {["intersection", "phrase", "ranking"].map((type) => (
+                                                <button
+                                                    key={type}
+                                                    className={`btn tag-btn ${searchType === type ? "selected-tag" : ""}`}
+                                                    onClick={() => setSearchType(type)}
+                                                >
+                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                        {/* Filters Row */}
-                        <div className="d-flex gap-2 justify-content-center">
-                            {/* Search Type */}
-                            <div className="col-4 text-center">
-                                <label className="form-label secondary-text">Search Type</label>
-                                <div className="d-flex justify-content-center filter-block gap-1">
-                                    {["intersection", "phrase", "ranking"].map((type) => (
-                                        <button
-                                            key={type}
-                                            className={`btn tag-btn ${searchType === type ? "selected-tag" : ""}`}
-                                            onClick={() => setSearchType(type)}
-                                        >
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                                    {/* Ranking Type */}
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Ranking Type</label>
+                                        <div className="d-flex justify-content-center filter-block gap-1">
+                                            {["relevance", "popularity", "date"].map((type) => (
+                                                <button
+                                                    key={type}
+                                                    className={`btn ranking-tag-btn ${rankingType === type ? "selected-ranking-tag" : ""}`}
+                                                    onClick={() => searchType === "ranking" && setRankingType(type)}
+                                                    disabled={searchType !== "ranking"} // Disable if ranking type is not selected
+                                                >
+                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                            {/* Ranking Type (only if needed) */}
-                            {searchType === "ranking" && (
-                                <div className="col-4 text-center">
-                                    <label className="form-label secondary-text">Ranking Type</label>
-                                    <div className="d-flex justify-content-center filter-block gap-1">
-                                        {["relevance", "popularity", "date"].map((type) => (
-                                            <button
-                                                key={type}
-                                                className={`btn ranking-tag-btn ${rankingType === type ? "selected-ranking-tag" : ""}`}
-                                                onClick={() => setRankingType(type)}
-                                            >
-                                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                                            </button>
-                                        ))}
+                                    {/* Time Range */}
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Time Range (Minutes)</label>
+                                        <input
+                                            type="range"
+                                            className="form-range"
+                                            min="0.5"
+                                            max="5"
+                                            step="0.5"
+                                            value={timeRange}
+                                            onChange={(e) => setTimeRange(parseFloat(e.target.value))}
+                                        />
+                                        <div className="d-flex justify-content-between small text-muted">
+                                            <span>30 sec</span>
+                                            <span>1 min</span>
+                                            <span>1:30</span>
+                                            <span>2 min</span>
+                                            <span>3 min</span>
+                                            <span>5 min</span>
+                                        </div>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Time Range */}
-                            <div className="col-4 text-center">
-                                <label className="form-label secondary-text">Time Range (Minutes)</label>
-                                <input
-                                    type="range"
-                                    className="form-range"
-                                    min="0.5"
-                                    max="5"
-                                    step="0.5"
-                                    value={timeRange}
-                                    onChange={(e) => setTimeRange(parseFloat(e.target.value))}
-                                />
-                                <div className="d-flex justify-content-between small text-muted">
-                                    <span>30 sec</span>
-                                    <span>1 min</span>
-                                    <span>1:30</span>
-                                    <span>2 min</span>
-                                    <span>3 min</span>
-                                    <span>5 min</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,7 +144,7 @@ const Search = () => {
                             <div
                                 key={index}
                                 className={`list-group-item list-group-item-action mb-2 rounded podcast-item d-flex align-items-start ${
-                                    selectedShow === result ? 'selected-item' : ''
+                                    selectedShow === result ? "selected-item" : ""
                                 }`}
                                 onClick={() => setSelectedShow(result)}
                             >
@@ -135,7 +153,7 @@ const Search = () => {
                                     className="episode-checkbox"
                                     checked={checkedEpisodes.includes(result.id)}
                                     onChange={(e) => {
-                                        e.stopPropagation(); // Prevent triggering the card click
+                                        e.stopPropagation();
                                         handleCheckboxChange(result.id);
                                     }}
                                 />
@@ -150,7 +168,7 @@ const Search = () => {
                         ))}
                     </div>
                 </div>
-                
+
                 {/* Right Section: Selected Show Details */}
                 <div className="col-md-8">
                     {selectedShow ? (

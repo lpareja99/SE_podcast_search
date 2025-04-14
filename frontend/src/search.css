@@ -78,6 +78,19 @@ button.tag-btn.selected-tag, button.ranking-tag-btn.selected-ranking-tag {
     color: white;
 }
 
+button.ranking-tag-btn:disabled {
+    background-color: transparent; /* Keep background transparent */
+    border-color: var(--secondary-text); /* Use secondary text color for border */
+    color: var(--secondary-text); /* Use secondary text color for text */
+    cursor: not-allowed; /* Show not-allowed cursor */
+}
+
+button.ranking-tag-btn.selected-ranking-tag:disabled {
+    background-color: var(--secondary-text); /* Gray background for selected disabled button */
+    color: white; /* Ensure text is visible */
+    border-color: var(--secondary-text); /* Match border to background */
+}
+
 .rank-badge {
     font-family: 'Brush Script MT', monospace;
     font-size: 2rem;
@@ -140,4 +153,30 @@ button.tag-btn.selected-tag, button.ranking-tag-btn.selected-ranking-tag {
 .list-group-item.selected-item {
     background-color: rgba(156, 70, 104, 0.2);
     border-left: 4px solid var(--main-button);
+}
+
+.accordion-body {
+    background-color: var(--background-color); /* Match page background */
+    border-top: 1px solid var(--search-border); /* Add border between header and body */
+}
+
+.accordion-button {
+    background-color: var(--background-color); /* Match page background */
+    color: var(--main-text); /* Ensure text is visible */
+    border: none; /* Remove default border */
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--background-color); /* Keep background consistent when expanded */
+    box-shadow: none; /* Remove shadow when expanded */
+}
+
+.accordion-button:focus {
+    box-shadow: none; /* Remove focus outline */
+}
+
+.accordion-item {
+    border: 1px solid var(--search-border); /* Add border around accordion item */
+    border-radius: 0.5rem; /* Optional: Add rounded corners */
+    overflow: hidden; /* Ensure content stays within the border */
 }
