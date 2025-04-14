@@ -71,6 +71,7 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
             ca_certs="http_ca.crt",
         )
 '''
+- To obtain password and username: `sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic`
 - Add your username and password to `backend/.env` and install `pip install python-dotenv`
  
 ### Kibana instalation (to be able to see the data of elastic search)
@@ -79,7 +80,7 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 - `sudo systemctl enable kibana`
 - `sudo systemctl start kibana`
 - `sudo systemctl status kibana`
-- Open browser on: http://localhost:5601
+- Open browser on: sudo systemctl start kibana
 - Obtain elastic token: `sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana`
 - Obtain verification code: `sudo journalctl -u kibana | grep "verification code"`
 
@@ -113,7 +114,7 @@ Useful parts of kirbana:
 
 - Install react
 - Install `pip install flask-cors`
-- To run the app: `npm run`
+- To run the app: `npm start`
 
 
 ### Set-up project (Windows)

@@ -13,19 +13,21 @@
   }
 }
 
+/* Updated with new color scheme */
 .App-header {
-  background-color: #282c34;
+  background-color: #F9F7F7; /* Updated: light background */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: #2D232E; /* Updated: main text color */
 }
 
+/* Updated link color */
 .App-link {
-  color: #61dafb;
+  color: #9C4668; /* Updated: main button/link color */
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +37,62 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Add new classes for your podcast search UI */
+.btn-main {
+  background-color: #9C4668;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary {
+  background-color: #C17A8E;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-third {
+  background-color: #6D2E46;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-main:hover, .btn-secondary:hover, .btn-third:hover {
+  background-color: #B55A7A;
+}
+
+.btn-main.selected, .btn-secondary.selected, .btn-third.selected {
+  background-color: #8A3D5C;
+}
+
+.search-bar {
+  background-color: #FFFFFF;
+  border: 1px solid #E8E1E4;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 80%;
+  max-width: 500px;
+}
+
+.title {
+  color: #1A1B1C;
+  font-weight: bold;
+}
+
+.secondary-text {
+  color: #584B53;
 }
