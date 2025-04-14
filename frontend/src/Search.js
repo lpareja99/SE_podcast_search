@@ -1,19 +1,22 @@
-// filepath: /frontend/src/Search.js
 import React, { useState } from "react";
-// Import bootstrap first, then your CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
-// Make sure this matches exactly with your file name (case sensitive)
 import "./search.css";  
+
+const SEARCH_FILTERS = ["General", "Title", "Episode", "Author"];
+const SEARCH_TYPES = ["Intersection", "Phrase", "Ranking"];
+const RANKING_TYPES = ["TF-IDF", "Pagerank", "Mix"];
+const TIME_RANGE_INTERVALS = [0.5, 1, 1.5, 2, 3, 5];
 
 const Search = () => {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [selectedShow, setSelectedShow] = useState(null);
     const [checkedEpisodes, setCheckedEpisodes] = useState([]);
-    const [searchType, setSearchType] = useState("intersection");
-    const [rankingType, setRankingType] = useState("relevance");
+    const [searchType, setSearchType] = useState("Intersection");
+    const [rankingType, setRankingType] = useState("Pagerank");
     const [timeRange, setTimeRange] = useState(1); 
-    const [isAccordionOpen, setIsAccordionOpen] = useState(false); // State for accordion
+    const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+    const [selectedTag, setSelectedTag] = useState("General");
 
     const handleSearch = async () => {
         const params = new URLSearchParams({
@@ -30,8 +33,8 @@ const Search = () => {
     const handleCheckboxChange = (episodeId) => {
         setCheckedEpisodes((prev) =>
             prev.includes(episodeId)
-                ? prev.filter((id) => id !== episodeId) // Remove if already checked
-                : [...prev, episodeId] // Add if not checked
+                ? prev.filter((id) => id !== episodeId)
+                : [...prev, episodeId]
         );
     };
     
@@ -39,11 +42,22 @@ const Search = () => {
         <div className="container mt-5 search-container">
             <h1 className="text-center mb-4 podcast-title">Advanced Podcast Search</h1>
 
-            {/* Main Search Bar */}
-            <div className="d-flex align-items-center gap-2 mb-4 ">
+            <div className="d-flex gap-2 mb-2">
+                {SEARCH_FILTERS.map((tag) => (
+                    <button
+                        key={tag}
+                        className={`btn ${selectedTag === tag ? "btn-secondary" : "btn-outline-secondary"} text-small`}
+                        onClick={() => setSelectedTag(tag)}
+                    >
+                        {tag}
+                    </button>
+                ))}
+            </div>
+
+            <div className="d-flex align-items-center gap-2 mb-3 ">
                 <input
                     type="text"
-                    className="form-control search-bar"
+                    className="form-control search-bar search-bar-large"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search for podcasts..."
@@ -53,7 +67,6 @@ const Search = () => {
                 </button>
             </div>
 
-            {/* Accordion for Advanced Search */}
             <div className="accordion" id="advancedSearchAccordion">
                 <div className="accordion-item">
                     <h2 className="accordion-header" id="headingOne">
@@ -74,13 +87,11 @@ const Search = () => {
                         data-bs-parent="#advancedSearchAccordion"
                     >
                         <div className="accordion-body">
-                                {/* Filters Row */}
                                 <div className="d-flex gap-2 justify-content-center">
-                                    {/* Search Type */}
                                     <div className="col-4 text-center">
                                         <label className="form-label secondary-text">Search Type</label>
                                         <div className="d-flex justify-content-center filter-block gap-1">
-                                            {["intersection", "phrase", "ranking"].map((type) => (
+                                            {SEARCH_TYPES.map((type) => (
                                                 <button
                                                     key={type}
                                                     className={`btn tag-btn ${searchType === type ? "selected-tag" : ""}`}
@@ -91,43 +102,38 @@ const Search = () => {
                                             ))}
                                         </div>
                                     </div>
-
-                                    {/* Ranking Type */}
                                     <div className="col-4 text-center">
                                         <label className="form-label secondary-text">Ranking Type</label>
                                         <div className="d-flex justify-content-center filter-block gap-1">
-                                            {["relevance", "popularity", "date"].map((type) => (
+                                            {RANKING_TYPES.map((type) => (
                                                 <button
                                                     key={type}
                                                     className={`btn ranking-tag-btn ${rankingType === type ? "selected-ranking-tag" : ""}`}
                                                     onClick={() => searchType === "ranking" && setRankingType(type)}
-                                                    disabled={searchType !== "ranking"} // Disable if ranking type is not selected
+                                                    disabled={searchType !== "ranking"}
                                                 >
                                                     {type.charAt(0).toUpperCase() + type.slice(1)}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-
-                                    {/* Time Range */}
                                     <div className="col-4 text-center">
                                         <label className="form-label secondary-text">Time Range (Minutes)</label>
                                         <input
                                             type="range"
                                             className="form-range"
-                                            min="0.5"
-                                            max="5"
-                                            step="0.5"
-                                            value={timeRange}
-                                            onChange={(e) => setTimeRange(parseFloat(e.target.value))}
+                                            min={0}
+                                            max={TIME_RANGE_INTERVALS.length - 1}
+                                            step={1}
+                                            value={TIME_RANGE_INTERVALS.indexOf(timeRange)}
+                                            onChange={(e) => setTimeRange(TIME_RANGE_INTERVALS[parseInt(e.target.value)])}
                                         />
                                         <div className="d-flex justify-content-between small text-muted">
-                                            <span>30 sec</span>
-                                            <span>1 min</span>
-                                            <span>1:30</span>
-                                            <span>2 min</span>
-                                            <span>3 min</span>
-                                            <span>5 min</span>
+                                            {TIME_RANGE_INTERVALS.map((interval, index) => (
+                                                <span key={index}>
+                                                    {interval === 0.5 ? "30 sec" : `${interval} min`}
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -135,9 +141,7 @@ const Search = () => {
                     </div>
                 </div>
             </div>
-
             <div className="row mt-4">
-                {/* Left Section: List of Shows */}
                 <div className="col-md-4">
                     <div className="list-group">
                         {results.map((result, index) => (
@@ -168,8 +172,6 @@ const Search = () => {
                         ))}
                     </div>
                 </div>
-
-                {/* Right Section: Selected Show Details */}
                 <div className="col-md-8">
                     {selectedShow ? (
                         <div className="card rounded custom-card">

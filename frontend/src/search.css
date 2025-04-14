@@ -1,6 +1,3 @@
-/* Simplified Search.css - Custom color scheme for podcast search */
-
-/* Color variables */
 :root {
     --background-color: #F9F7F7;
     --main-button: #9C4668;
@@ -34,6 +31,12 @@ p, .main-text, .secondary-text {
     background-color: var(--search-bg);
     border: 1px solid var(--search-border);
     color: var(--main-text);
+}
+
+.search-bar-large {
+    height: 3.5rem; /* Increase height */
+    font-size: 1.25rem; /* Increase font size */
+    padding: 0.75rem 1.25rem; /* Adjust padding */
 }
 
 .form-control:focus {
@@ -79,16 +82,72 @@ button.tag-btn.selected-tag, button.ranking-tag-btn.selected-ranking-tag {
 }
 
 button.ranking-tag-btn:disabled {
-    background-color: transparent; /* Keep background transparent */
-    border-color: var(--secondary-text); /* Use secondary text color for border */
-    color: var(--secondary-text); /* Use secondary text color for text */
-    cursor: not-allowed; /* Show not-allowed cursor */
+    background-color: transparent;
+    border-color: var(--secondary-text);
+    color: var(--secondary-text);
+    cursor: not-allowed;
 }
 
 button.ranking-tag-btn.selected-ranking-tag:disabled {
-    background-color: var(--secondary-text); /* Gray background for selected disabled button */
-    color: white; /* Ensure text is visible */
-    border-color: var(--secondary-text); /* Match border to background */
+    background-color: var(--secondary-text);
+    color: white;
+    border-color: var(--secondary-text);
+}
+
+.btn-primary {
+    background-color: var(--main-button);
+    color: white;
+    border: 2px solid var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.8rem; /* Smaller font size */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 15px; /* Smaller border radius */
+}
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--main-button);
+    border: 2px solid var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.8rem; /* Smaller font size */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 15px; /* Smaller border radius */
+}
+
+.btn-primary:hover, .btn-outline-primary:hover {
+    background-color: var(--secondary-button);
+    color: white;
+    border-color: var(--secondary-button);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-button);
+    color: white;
+    border: 2px solid var(--secondary-button);
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    color: var(--secondary-button);
+    border: 2px solid var(--secondary-button);
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background-color: var(--main-button);
+    color: white;
+    border-color: var(--main-button);
 }
 
 .rank-badge {
@@ -146,7 +205,7 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
 .list-group-item:hover {
     background-color: rgba(156, 70, 104, 0.1);
     border-color: var(--main-button);
-    transform: scale(1.02); /* Slight hover effect */
+    transform: scale(1.02);
     transition: transform 0.2s ease-in-out;
 }
 
@@ -156,27 +215,27 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
 }
 
 .accordion-body {
-    background-color: var(--background-color); /* Match page background */
-    border-top: 1px solid var(--search-border); /* Add border between header and body */
+    background-color: white;
+    border-top: 1px solid var(--search-border);
 }
 
 .accordion-button {
-    background-color: var(--background-color); /* Match page background */
-    color: var(--main-text); /* Ensure text is visible */
-    border: none; /* Remove default border */
+    background-color: white;
+    color: var(--main-text);
+    border: none;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: var(--background-color); /* Keep background consistent when expanded */
-    box-shadow: none; /* Remove shadow when expanded */
+    background-color: white;
+    box-shadow: none;
 }
 
 .accordion-button:focus {
-    box-shadow: none; /* Remove focus outline */
+    box-shadow: none;
 }
 
 .accordion-item {
-    border: 1px solid var(--search-border); /* Add border around accordion item */
-    border-radius: 0.5rem; /* Optional: Add rounded corners */
-    overflow: hidden; /* Ensure content stays within the border */
+    border: 1px solid var(--search-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
