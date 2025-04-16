@@ -26,3 +26,6 @@ Thumbs.db
 
 # Node.js dependencies (if applicable)
 node_modules/
+
+#data 
+/spotify-podcasts-2020
