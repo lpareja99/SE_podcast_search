@@ -1,0 +1,241 @@
+:root {
+    --background-color: #F9F7F7;
+    --main-button: #9C4668;
+    --secondary-button: #C17A8E;
+    --main-text: #2D232E;
+    --secondary-text: #584B53;
+    --search-bg: #FFFFFF;
+    --search-border: #E8E1E4;
+}
+
+body, .container {
+    background-color: var(--background-color);
+}
+
+.card, .list-group-item {
+    background-color: var(--search-bg);
+    border: 1px solid var(--search-border);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1.podcast-title, .podcast-title {
+    color: var(--main-text);
+    font-weight: 600;
+}
+
+p, .main-text, .secondary-text {
+    color: var(--secondary-text);
+}
+
+.form-control, .search-bar {
+    background-color: var(--search-bg);
+    border: 1px solid var(--search-border);
+    color: var(--main-text);
+}
+
+.search-bar-large {
+    height: 3.5rem; /* Increase height */
+    font-size: 1.25rem; /* Increase font size */
+    padding: 0.75rem 1.25rem; /* Adjust padding */
+}
+
+.form-control:focus {
+    border-color: var(--main-button);
+    box-shadow: 0 0 0 0.2rem rgba(156, 70, 104, 0.25);
+}
+
+.form-range {
+    accent-color: var(--main-button);
+    width: 100%;
+}
+
+.form-range::-webkit-slider-thumb {
+    background-color: var(--main-button);
+    border: 2px solid var(--main-button);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+button {
+    background-color: var(--main-button);
+    border: none;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--secondary-button);
+}
+
+button.tag-btn, button.ranking-tag-btn {
+    background-color: transparent;
+    border: 2px solid var(--main-button);
+    color: var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+button.tag-btn.selected-tag, button.ranking-tag-btn.selected-ranking-tag {
+    background-color: var(--main-button);
+    color: white;
+}
+
+button.ranking-tag-btn:disabled {
+    background-color: transparent;
+    border-color: var(--secondary-text);
+    color: var(--secondary-text);
+    cursor: not-allowed;
+}
+
+button.ranking-tag-btn.selected-ranking-tag:disabled {
+    background-color: var(--secondary-text);
+    color: white;
+    border-color: var(--secondary-text);
+}
+
+.btn-primary {
+    background-color: var(--main-button);
+    color: white;
+    border: 2px solid var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.8rem; /* Smaller font size */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 15px; /* Smaller border radius */
+}
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--main-button);
+    border: 2px solid var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.8rem; /* Smaller font size */
+    padding: 0.3rem 0.8rem; /* Reduced padding */
+    border-radius: 15px; /* Smaller border radius */
+}
+
+.btn-primary:hover, .btn-outline-primary:hover {
+    background-color: var(--secondary-button);
+    color: white;
+    border-color: var(--secondary-button);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-button);
+    color: white;
+    border: 2px solid var(--secondary-button);
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    color: var(--secondary-button);
+    border: 2px solid var(--secondary-button);
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background-color: var(--main-button);
+    color: white;
+    border-color: var(--main-button);
+}
+
+.rank-badge {
+    font-family: 'Brush Script MT', monospace;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--main-button);
+    line-height: 1;
+}
+
+.episode-checkbox {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-bar {
+    flex-grow: 1;
+    height: 3rem;
+    font-size: 1.2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+.search-icon-btn {
+    background-color: var(--main-button);
+    border: none;
+    color: white;
+    height: 3rem;
+    width: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.search-icon-btn:hover {
+    background-color: var(--secondary-button);
+}
+
+.search-icon-btn i {
+    font-size: 1.5rem;
+}
+
+.list-group-item:hover {
+    background-color: rgba(156, 70, 104, 0.1);
+    border-color: var(--main-button);
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
+}
+
+.list-group-item.selected-item {
+    background-color: rgba(156, 70, 104, 0.2);
+    border-left: 4px solid var(--main-button);
+}
+
+.accordion-body {
+    background-color: white;
+    border-top: 1px solid var(--search-border);
+}
+
+.accordion-button {
+    background-color: white;
+    color: var(--main-text);
+    border: none;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: white;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+}
+
+.accordion-item {
+    border: 1px solid var(--search-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}

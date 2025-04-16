@@ -1,35 +1,195 @@
-// filepath: /frontend/src/Search.js
 import React, { useState } from "react";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import "./search.css";  
+
+const SEARCH_FILTERS = ["General", "Title", "Episode", "Author"];
+const SEARCH_TYPES = ["Intersection", "Phrase", "Ranking"];
+const RANKING_TYPES = ["TF-IDF", "Pagerank", "Mix"];
+const TIME_RANGE_INTERVALS = [0.5, 1, 1.5, 2, 3, 5];
 
 const Search = () => {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
+    const [selectedShow, setSelectedShow] = useState(null);
+    const [checkedEpisodes, setCheckedEpisodes] = useState([]);
+    const [searchType, setSearchType] = useState("Intersection");
+    const [rankingType, setRankingType] = useState("Pagerank");
+    const [timeRange, setTimeRange] = useState(1); 
+    const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+    const [selectedTag, setSelectedTag] = useState("General");
 
     const handleSearch = async () => {
-        const response = await fetch(`http://127.0.0.1:5000/search?q=${query}`);
+        const params = new URLSearchParams({
+            q: query,
+            type: searchType,
+            ranking: searchType === "ranking" ? rankingType : undefined,
+            time: timeRange,
+        });
+        const response = await fetch(`http://127.0.0.1:5000/search?${params}`);
         const data = await response.json();
         setResults(data);
     };
 
+    const handleCheckboxChange = (episodeId) => {
+        setCheckedEpisodes((prev) =>
+            prev.includes(episodeId)
+                ? prev.filter((id) => id !== episodeId)
+                : [...prev, episodeId]
+        );
+    };
+    
     return (
-        <div>
-            <h1>Podcast Search</h1>
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for podcasts..."
-            />
-            <button onClick={handleSearch}>Search</button>
-            <ul>
-                {results.map((result, index) => (
-                    <li key={index}>
-                        <h3>{result.title}</h3>
-                        <p>{result.description}</p>
-                        <p><strong>Show:</strong> {result.show}</p>
-                    </li>
+        <div className="container mt-5 search-container">
+            <h1 className="text-center mb-4 podcast-title">Advanced Podcast Search</h1>
+
+            <div className="d-flex gap-2 mb-2">
+                {SEARCH_FILTERS.map((tag) => (
+                    <button
+                        key={tag}
+                        className={`btn ${selectedTag === tag ? "btn-secondary" : "btn-outline-secondary"} text-small`}
+                        onClick={() => setSelectedTag(tag)}
+                    >
+                        {tag}
+                    </button>
                 ))}
-            </ul>
+            </div>
+
+            <div className="d-flex align-items-center gap-2 mb-3 ">
+                <input
+                    type="text"
+                    className="form-control search-bar search-bar-large"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search for podcasts..."
+                />
+                <button className="btn search-icon-btn" onClick={handleSearch}>
+                    <i className="bi bi-search"></i>
+                </button>
+            </div>
+
+            <div className="accordion" id="advancedSearchAccordion">
+                <div className="accordion-item">
+                    <h2 className="accordion-header" id="headingOne">
+                        <button
+                            className={`accordion-button ${isAccordionOpen ? "" : "collapsed"}`}
+                            type="button"
+                            onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+                            aria-expanded={isAccordionOpen}
+                            aria-controls="collapseOne"
+                        >
+                            Advanced Search
+                        </button>
+                    </h2>
+                    <div
+                        id="collapseOne"
+                        className={`accordion-collapse collapse ${isAccordionOpen ? "show" : ""}`}
+                        aria-labelledby="headingOne"
+                        data-bs-parent="#advancedSearchAccordion"
+                    >
+                        <div className="accordion-body">
+                                <div className="d-flex gap-2 justify-content-center">
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Search Type</label>
+                                        <div className="d-flex justify-content-center filter-block gap-1">
+                                            {SEARCH_TYPES.map((type) => (
+                                                <button
+                                                    key={type}
+                                                    className={`btn tag-btn ${searchType === type ? "selected-tag" : ""}`}
+                                                    onClick={() => setSearchType(type)}
+                                                >
+                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Ranking Type</label>
+                                        <div className="d-flex justify-content-center filter-block gap-1">
+                                            {RANKING_TYPES.map((type) => (
+                                                <button
+                                                    key={type}
+                                                    className={`btn ranking-tag-btn ${rankingType === type ? "selected-ranking-tag" : ""}`}
+                                                    onClick={() => searchType === "ranking" && setRankingType(type)}
+                                                    disabled={searchType !== "ranking"}
+                                                >
+                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="col-4 text-center">
+                                        <label className="form-label secondary-text">Time Range (Minutes)</label>
+                                        <input
+                                            type="range"
+                                            className="form-range"
+                                            min={0}
+                                            max={TIME_RANGE_INTERVALS.length - 1}
+                                            step={1}
+                                            value={TIME_RANGE_INTERVALS.indexOf(timeRange)}
+                                            onChange={(e) => setTimeRange(TIME_RANGE_INTERVALS[parseInt(e.target.value)])}
+                                        />
+                                        <div className="d-flex justify-content-between small text-muted">
+                                            {TIME_RANGE_INTERVALS.map((interval, index) => (
+                                                <span key={index}>
+                                                    {interval === 0.5 ? "30 sec" : `${interval} min`}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="row mt-4">
+                <div className="col-md-4">
+                    <div className="list-group">
+                        {results.map((result, index) => (
+                            <div
+                                key={index}
+                                className={`list-group-item list-group-item-action mb-2 rounded podcast-item d-flex align-items-start ${
+                                    selectedShow === result ? "selected-item" : ""
+                                }`}
+                                onClick={() => setSelectedShow(result)}
+                            >
+                                <input
+                                    type="checkbox"
+                                    className="episode-checkbox"
+                                    checked={checkedEpisodes.includes(result.id)}
+                                    onChange={(e) => {
+                                        e.stopPropagation();
+                                        handleCheckboxChange(result.id);
+                                    }}
+                                />
+                                <div className="rank-badge me-3">{index + 1}</div>
+                                <div>
+                                    <h5 className="mb-1 podcast-title">{result.show}</h5>
+                                    <p className="mb-1 episode-info">
+                                        <strong>Episode:</strong> {result.title}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="col-md-8">
+                    {selectedShow ? (
+                        <div className="card rounded custom-card">
+                            <div className="card-body">
+                                <h5 className="card-title podcast-title">{selectedShow.show}</h5>
+                                <p className="card-text main-text">{selectedShow.description}</p>
+                                <p className="card-text episode-info">
+                                    <strong>Episode:</strong> {selectedShow.title}
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        results.length > 0 && (
+                            <p className="text-center secondary-text">Select a show to see details</p>
+                        )
+                    )}
+                </div>
+            </div>
         </div>
     );
 };
