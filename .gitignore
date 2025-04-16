@@ -1,7 +1,7 @@
 /podcasts-no-audio-13GB
 /venv
 backend/__pycache__
-
+/db/podcasts-no-audio-13GB
 # zip files
 *.zip
 *.tar.gz
