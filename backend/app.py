@@ -14,8 +14,17 @@ def home():
 
 @app.route('/search')
 def search():
-    query = request.args.get("q", "")
-    result = es.search(index=INDEX_NAME, query={"match": {"episode_description": query}})
+    params = {
+        "q": request.args.get("q", ""),
+        "filter": request.args.get("filter", None),
+        "type": request.args.get("type", None),
+        "ranking": request.args.get("ranking", None),
+        "time": request.args.get("time", None),
+        "selectedEpisodes": request.args.get("selectedEpisodes", "").split(",") if request.args.get("selectedEpisodes") else []
+    }
+    query = querySelector(params)
+
+    result = es.search(index=INDEX_NAME, query= query)
     hits = [
         {
             "title": hit["_source"]["episode_title"],
@@ -25,6 +34,35 @@ def search():
         for hit in result["hits"]["hits"]
     ]
     return jsonify(hits)
+
+def querySelector(params):
+    type = params['type']
+    match type:
+        case "Intersection":
+            query = query = {
+    "bool": {
+        "must": [
+            {
+                "match": {
+                    "episode_description": {
+                        "query": params["q"],
+                        "fuzziness": 1
+                    }
+                }
+            }
+        ]
+    }
+}
+        case "Phrase":
+            query = {"match_phrase": {"episode_description": params["q"]}}
+        case "Ranking":
+            pass
+
+    return query
+    
+    # query1 = {"match": {"episode_description": params["q"]}}
+    # query2 = {"match_phrase": {"episode_description": params["q"]}}
+    # query3 = {"bool": {"must" : [{"match": {"episode_description": params["q"]}}]}}
 
 if __name__ == "__main__":
     app.run(debug=True)
