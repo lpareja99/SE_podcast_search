@@ -23,13 +23,11 @@ backend/__pycache__
 *.swp
 *.swo
 .DS_Store
-Thumbs.dbpacka
+Thumbs.db
 
 # Node.js dependencies (if applicable)
+node_modules/
+package-lock.json
+**/package-lock.json
 
-
-/spotify-podcasts-2020#data node_modules//spotify-podcasts-2020
-
-.package-lock.json
-**/.package-lock.json
-**/.package-lock.*
+.vscode
