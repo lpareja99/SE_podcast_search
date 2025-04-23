@@ -91,6 +91,29 @@ def get_time_from_string(str):
     return float(str[:-1])
 
 def phrase_query(phrase, index_name, top_k = 1, es = None, chunk_size = 30, debug = False):
+    """
+    Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
+
+    This function performs a phrase search across podcast transcripts and retrieves 
+    the first matching chunk from each top result. Each chunk is extended (if needed) 
+    to fit the specified duration (`chunk_size`).
+
+    Parameters:
+        phrase (str): The phrase to search for in transcript chunks.
+        index_name (str): The name of the Elasticsearch index to search.
+        top_k (int, optional): The number of top results (episodes) to retrieve. Default is 1.
+        es (Elasticsearch, optional): An existing Elasticsearch client instance. If None, a new one is fetched from `get_es()`.
+        chunk_size (int, optional): Desired duration (in seconds) of the output chunk. Must be one of [30, 60, 90, 120, 180, 300]. Default is 30.
+        debug (bool, optional): If True, prints debug information about matched results. Default is False.
+
+    Returns:
+        List[dict]: A list of dictionaries, each containing:
+            - show (str): The show ID.
+            - episode (str): The episode ID.
+            - chunk (str): The chunk of transcript text containing the phrase.
+            - start_time (str): Start time of the chunk (e.g., '5.43s').
+            - end_time (str): End time of the chunk (e.g., '35.29s').
+    """
 
     results = phrase_search(phrase, index_name,top_k= top_k, es=es)
     if debug:
