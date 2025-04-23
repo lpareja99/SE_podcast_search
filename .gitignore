@@ -31,3 +31,7 @@ package-lock.json
 **/package-lock.json
 
 .vscode
+
+#Baptiste's dev files 
+test_on_database.ipynb 
+Baptiste_Notebook_Index_And_Search_2.ipynb
