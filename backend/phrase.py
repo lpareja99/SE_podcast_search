@@ -115,19 +115,22 @@ def phrase_query(phrase, index_name, top_k = 1, es = None, chunk_size = 30, debu
             - end_time (str): End time of the chunk (e.g., '35.29s').
     """
 
-    results = phrase_search(phrase, index_name,top_k= top_k, es=es)
-    if debug:
-        for result in results:
-            print(f"Show ID: {result['show']}, Episode ID: {result['episode']}")
+    documents = phrase_search(phrase, index_name,top_k= top_k, es=es)
+    results = []
+    for doc in documents:
+        if debug:
+            print(f"Show ID: {doc['show']}, Episode ID: {doc['episode']}")
             print("\n🎯 Best Chunk in Episode:")
-            best_chunk = get_first_chunk(result['show'], result['episode'], phrase, index_name, es=es, chunk_size=chunk_size)
-            if best_chunk:
+        best_chunk = get_first_chunk(doc['show'], doc['episode'], phrase, index_name, es=es, chunk_size=chunk_size)
+        if best_chunk:
+            results.append(best_chunk)
+            if debug:
                 print(f"Show: {best_chunk['show']}")
                 print(f"Episode: {best_chunk['episode']}")
                 print(f"Chunk: {best_chunk['chunk']}")
                 print(f"Time: {best_chunk['start_time']} → {best_chunk['end_time']}")
-            else:
-                print("No chunk found for.")
+        else:
+            print("No chunk found for.")
     return results
 
     
@@ -135,5 +138,6 @@ if __name__ == "__main__":
     es = get_es()
     phrase = "big cat"
     index_name = "podcast_transcripts"
-    phrase_query(phrase, index_name, top_k = 10, es = es, chunk_size = 30, debug = True)
+    results = phrase_query(phrase, index_name, top_k = 10, es = es, chunk_size = 30, debug = True)
+    print(results)
         
