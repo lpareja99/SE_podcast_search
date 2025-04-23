@@ -21,21 +21,30 @@ const Search = () => {
     const handleSearch = async () => {
         const params = new URLSearchParams({
             q: query,
+            filter: selectedTag,
             type: searchType,
-            ranking: searchType === "ranking" ? rankingType : undefined,
+            ranking: searchType === "Ranking" ? rankingType : undefined, // Fix case sensitivity
             time: timeRange,
+            selectedEpisodes: checkedEpisodes.join(","),
         });
+        console.log("Search Parameters:", Object.fromEntries(params.entries())); // Print parameters to screen
         const response = await fetch(`http://127.0.0.1:5000/search?${params}`);
         const data = await response.json();
-        setResults(data);
+
+        // Ensure each result has a unique id
+        const resultsWithIds = data.map((result, index) => ({
+            ...result,
+            id: result.id || index, // Use existing id or fallback to index
+        }));
+
+        setResults(resultsWithIds);
     };
 
     const handleCheckboxChange = (episodeId) => {
-        setCheckedEpisodes((prev) =>
-            prev.includes(episodeId)
-                ? prev.filter((id) => id !== episodeId)
-                : [...prev, episodeId]
-        );
+        setCheckedEpisodes((prev) => {
+            const isChecked = prev.includes(episodeId);
+            return isChecked ? prev.filter((id) => id !== episodeId) : [...prev, episodeId];
+        });
     };
     
     return (
@@ -61,6 +70,11 @@ const Search = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search for podcasts..."
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleSearch();
+                        }
+                    }}
                 />
                 <button className="btn search-icon-btn" onClick={handleSearch}>
                     <i className="bi bi-search"></i>
@@ -109,8 +123,8 @@ const Search = () => {
                                                 <button
                                                     key={type}
                                                     className={`btn ranking-tag-btn ${rankingType === type ? "selected-ranking-tag" : ""}`}
-                                                    onClick={() => searchType === "ranking" && setRankingType(type)}
-                                                    disabled={searchType !== "ranking"}
+                                                    onClick={() => searchType === "Ranking" && setRankingType(type)}
+                                                    disabled={searchType !== "Ranking"} 
                                                 >
                                                     {type.charAt(0).toUpperCase() + type.slice(1)}
                                                 </button>
@@ -155,10 +169,10 @@ const Search = () => {
                                 <input
                                     type="checkbox"
                                     className="episode-checkbox"
-                                    checked={checkedEpisodes.includes(result.id)}
+                                    checked={checkedEpisodes.includes(result.id)} // Use unique id for state tracking
                                     onChange={(e) => {
                                         e.stopPropagation();
-                                        handleCheckboxChange(result.id);
+                                        handleCheckboxChange(result.id); // Update state for the specific checkbox
                                     }}
                                 />
                                 <div className="rank-badge me-3">{index + 1}</div>

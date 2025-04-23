@@ -61,8 +61,6 @@ def score_query(query, index_name):
 
 
 
-
-
 def format_clip_results(response):
     results = []
     for hit in response["hits"]["hits"]:
