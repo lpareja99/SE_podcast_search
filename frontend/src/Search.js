@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "./search.css";  
-
-const SEARCH_FILTERS = ["General", "Title", "Episode", "Author"];
-const SEARCH_TYPES = ["Intersection", "Phrase", "Ranking"];
-const RANKING_TYPES = ["TF-IDF", "Pagerank", "Mix"];
-const TIME_RANGE_INTERVALS = [0.5, 1, 1.5, 2, 3, 5];
+import "./search.css";
+import { API_BASE_URL, SEARCH_FILTERS, SEARCH_TYPES, RANKING_TYPES, TIME_RANGE_INTERVALS } from "./config";
 
 const Search = () => {
     const [query, setQuery] = useState("");
@@ -23,18 +19,23 @@ const Search = () => {
             q: query,
             filter: selectedTag,
             type: searchType,
-            ranking: searchType === "Ranking" ? rankingType : undefined, // Fix case sensitivity
+            ranking: searchType === "Ranking" ? rankingType : undefined,
             time: timeRange,
             selectedEpisodes: checkedEpisodes.join(","),
         });
-        console.log("Search Parameters:", Object.fromEntries(params.entries())); // Print parameters to screen
-        const response = await fetch(`http://127.0.0.1:5000/search?${params}`);
+        console.log("Search Parameters:", Object.fromEntries(params.entries()));
+        const response = await fetch(`${API_BASE_URL}/search?${params}`);
         const data = await response.json();
 
-        // Ensure each result has a unique id
+        if (!Array.isArray(data)) {
+            console.error("Unexpected API response format:", data);
+            setResults([]); // Clear results if the response is not an array
+            return;
+        }
+
         const resultsWithIds = data.map((result, index) => ({
             ...result,
-            id: result.id || index, // Use existing id or fallback to index
+            id: result.id || index,
         }));
 
         setResults(resultsWithIds);
@@ -169,10 +170,10 @@ const Search = () => {
                                 <input
                                     type="checkbox"
                                     className="episode-checkbox"
-                                    checked={checkedEpisodes.includes(result.id)} // Use unique id for state tracking
+                                    checked={checkedEpisodes.includes(result.id)}
                                     onChange={(e) => {
                                         e.stopPropagation();
-                                        handleCheckboxChange(result.id); // Update state for the specific checkbox
+                                        handleCheckboxChange(result.id);
                                     }}
                                 />
                                 <div className="rank-badge me-3">{index + 1}</div>
