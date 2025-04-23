@@ -34,18 +34,18 @@ def search():
 
 def querySelector(params):
     filter = params['filter']
-    type = params['type']
 
     # Handle filter logic
-    result = handleFilter(filter, params)
+    result = handleFilter(params)
 
     return result
 
 
-def handleFilter(filter, params):
-    match filter:
+def handleFilter(params):
+    match params['filter']:
         case "General":
             transcript_result = handleType(params)
+            print(transcript_result)
             metadata_results = metadata(transcript_result)
              # TODO: return both results to be able to show both things
             return metadata_results 

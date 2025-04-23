@@ -3,7 +3,7 @@ from config import get_es
 INDEX_NAME = "podcast_transcripts"
 
 
-def phrase_search(phrase, index_name, top_k=1, es=None):
+def phrase_search(phrase, index_name=INDEX_NAME, top_k=1, es=None):
     if es is None:
         es = get_es()
     query = {
@@ -27,7 +27,7 @@ def phrase_search(phrase, index_name, top_k=1, es=None):
 
     return results
 
-def get_first_chunk(show_id, episode_id, phrase, index_name, es=None, chunk_size = 30):
+def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None, chunk_size = 30):
     
     if es is None:
         es = get_es()
@@ -92,7 +92,7 @@ def get_first_chunk(show_id, episode_id, phrase, index_name, es=None, chunk_size
 def get_time_from_string(str):
     return float(str[:-1])
 
-def phrase_query(phrase, index_name=INDEX_NAME, top_k=1, es=None, chunk_size=30, debug=False):
+def phrase_query(phrase, index_name= INDEX_NAME, top_k = 1, es = None, chunk_size = 30, debug = False):
     """
     Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
 
@@ -102,7 +102,7 @@ def phrase_query(phrase, index_name=INDEX_NAME, top_k=1, es=None, chunk_size=30,
 
     Parameters:
         phrase (str): The phrase to search for in transcript chunks.
-        index_name (str, optional): The name of the Elasticsearch index to search. Default is `INDEX_NAME`.
+        index_name (str): The name of the Elasticsearch index to search.
         top_k (int, optional): The number of top results (episodes) to retrieve. Default is 1.
         es (Elasticsearch, optional): An existing Elasticsearch client instance. If None, a new one is fetched from `get_es()`.
         chunk_size (int, optional): Desired duration (in seconds) of the output chunk. Must be one of [30, 60, 90, 120, 180, 300]. Default is 30.
@@ -116,23 +116,29 @@ def phrase_query(phrase, index_name=INDEX_NAME, top_k=1, es=None, chunk_size=30,
             - start_time (str): Start time of the chunk (e.g., '5.43s').
             - end_time (str): End time of the chunk (e.g., '35.29s').
     """
-    results = phrase_search(phrase, index_name=index_name, top_k=top_k, es=es)
-    if debug:
-        for result in results:
-            print(f"Show ID: {result['show_id']}, Episode ID: {result['episode_id']}")
+
+    documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
+    results = []
+    for doc in documents:
+        if debug:
+            print(f"Show ID: {doc['show_id']}, Episode ID: {doc['episode_id']}")
             print("\n🎯 Best Chunk in Episode:")
-            best_chunk = get_first_chunk(result['show_id'], result['episode_id'], phrase, index_name, es=es, chunk_size=chunk_size)
-            if best_chunk:
+        best_chunk = get_first_chunk(doc['show_id'], doc['episode_id'], phrase, index_name, es=es, chunk_size=chunk_size)
+        if best_chunk:
+            results.append(best_chunk)
+            if debug:
                 print(f"Show: {best_chunk['show_id']}")
                 print(f"Episode: {best_chunk['episode_id']}")
                 print(f"Chunk: {best_chunk['chunk']}")
                 print(f"Time: {best_chunk['start_time']} → {best_chunk['end_time']}")
-            else:
-                print("No chunk found for.")
+        else:
+            print("No chunk found for.")
     return results
 
     
 if __name__ == "__main__":  
     es = get_es()
     q = "big cat"
-    phrase_query(q, INDEX_NAME, top_k = 10, es = es, chunk_size = 30, debug = True)
+    results = phrase_query(q, index_name=INDEX_NAME, top_k = 10, es = es, chunk_size = 30, debug = True)
+    print(results)
+ 
