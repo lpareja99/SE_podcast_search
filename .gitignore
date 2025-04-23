@@ -9,7 +9,8 @@ backend/__pycache__
 
 # Environment files
 .env
-.env.mine
+**/.env
+**/.env.*
 
 # Certificates
 *.crt
@@ -22,10 +23,13 @@ backend/__pycache__
 *.swp
 *.swo
 .DS_Store
-Thumbs.db
+Thumbs.dbpacka
 
 # Node.js dependencies (if applicable)
-node_modules/
 
-#data 
-/spotify-podcasts-2020
+
+/spotify-podcasts-2020#data node_modules//spotify-podcasts-2020
+
+.package-lock.json
+**/.package-lock.json
+**/.package-lock.*
