@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 import os
 import json
@@ -5,22 +6,16 @@ from glob import glob
 from json.decoder import JSONDecodeError
 import re
 from tqdm import tqdm
-
 import urllib3
+
+INDEX_NAME = "podcast_transcripts"
+PARENT_FOLDER = "../podcasts-no-audio-13GB/summarization-testset/spotify-podcasts-2020/podcasts-transcripts-summarization-testset"
+ONLY_USE_N_JSON = 2000
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-#to disable warnings : "HTTPS without verifying the server's SSL certificate" 
+# to disable warnings: "HTTPS without verifying the server's SSL certificate"
 
-
-#variables 
-
-parent_folder = "/home/baptiste/kth/SE_podcast_search/spotify-podcasts-2020/podcasts-transcripts-summarization-testset/"  
-# replace this with your actual folder path, can be a nested folder
-index_name = "podcast_transcripts" #don't change this
-# log  = False #if you want more log
-only_use_n_json = 2000 #if you want to limit the number of json files to use, set it to 0 to use all the json files
-basic_auth = ("elastic", "==4D6GuIwqE=vp7x*bJ8") #your elastic logins
-
-## functions 
+# Functions
 
 def get_n_json_files_from_nested_folders(parent_folder, n=5):
     all_json_files = glob(os.path.join(parent_folder, "**", "*.json"), recursive=True)
@@ -133,8 +128,9 @@ def get_30s_chunks(chunks: list):
 
 
 def format_json(input_file):
-    podcast_id = os.path.basename(os.path.dirname(input_file))
-    
+    show_id = os.path.basename(os.path.dirname(input_file))[5:]
+    episode_id = os.path.basename(input_file).split('.')[0]
+
     try:
         with open(input_file, 'r') as f:
             data = json.load(f)
@@ -163,7 +159,8 @@ def format_json(input_file):
     # all sentence chunks are processed to ~30s segments 
     formatted_chunks = get_30s_chunks(chunks_list)
     output = {
-        'episode_id': podcast_id,
+        'episode_id': episode_id,
+        'show_id': show_id,
         'num_words': num_words,
         'chunks': formatted_chunks
     }
@@ -171,23 +168,24 @@ def format_json(input_file):
     return output
 
 def main():
-    json_files = get_n_json_files_from_nested_folders(parent_folder, n=only_use_n_json)
+    json_files = get_n_json_files_from_nested_folders(PARENT_FOLDER, n=ONLY_USE_N_JSON)
 
-    create_index(index_name)
+    create_index(INDEX_NAME)
     for file in tqdm(json_files, desc="Indexing files"):
         formatted_doc = format_json(file)
         if formatted_doc == {}:
             continue
-        es.index(index=index_name, document=formatted_doc)
+        es.index(index=INDEX_NAME, document=formatted_doc)
 
-    print(f"✅ All documents indexed into Elasticsearch in {index_name}.")
+    print(f"✅ All documents indexed into Elasticsearch in {INDEX_NAME}.")
 
 
 if __name__ == "__main__":
+    load_dotenv()
     es = Elasticsearch(
-        "https://localhost:9200",
-        basic_auth=basic_auth,  
-        verify_certs=False  
+        os.getenv("ELASTICSEARCH_URL"),
+        basic_auth=(os.getenv("ELASTIC_USERNAME"), os.getenv("ELASTIC_PASSWORD")),
+        verify_certs=False
     )
 
     if es.ping():

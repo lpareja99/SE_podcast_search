@@ -34,10 +34,10 @@ def load_data(tsv_path):
         actions = []
         for row in reader:
             doc = {
-                "episode_id": row["episode_uri"],
+                "episode_id": row["episode_uri"].split(':')[-1],
                 "episode_title": row["episode_name"],
                 "episode_description": row["episode_description"],
-                "show_id": row["show_uri"],
+                "show_id": row["show_uri"].split(':')[-1],
                 "show_name": row["show_name"],
                 "publisher": row["publisher"],
                 "language": row["language"],
@@ -59,5 +59,6 @@ def load_data(tsv_path):
 
 if __name__ == "__main__":
     create_index()
+    print("loading")
     load_data(file_path)
     print("Data loaded successfully.")
