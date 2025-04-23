@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
 from config import get_es
 from flask_cors import CORS
+from queries.metadata import metadata
+from queries.phrase import phrase_query
 
 app = Flask(__name__)
 CORS(app)
 
 es = get_es()
-INDEX_NAME = "episodes"
+EPISODES_INDEX = "episodes"
+TRANSACRIPTS_INDEX = "podcast_transcripts"
 
 @app.route('/')
 def home():
@@ -23,42 +26,29 @@ def search():
         "selectedEpisodes": request.args.get("selectedEpisodes", "").split(",") if request.args.get("selectedEpisodes") else []
     }
     
-    query = querySelector(params)
+    transcript_results = querySelector(params)
     
-    result = es.search(index=INDEX_NAME, query=query)
-    hits = [
-        {
-            "title": hit["_source"]["episode_title"],
-            "description": hit["_source"]["episode_description"],
-            "show": hit["_source"]["show_name"]
-        }
-        for hit in result["hits"]["hits"]
-    ]
-    return jsonify(hits)
+    print("results of trasncripts: " , transcript_results)
+    
+    metadata_results = metadata(transcript_results)
+    
+    return metadata_results
+
+
 
 def querySelector(params):
+    
+    phrase_query(phrase=params["q"])
     type = params['type']
-    query = {}  # Initialize query to avoid UnboundLocalError
+    result = [] 
     match type:
         case "Intersection":
-            query = {
-                "bool": {
-                    "must": [
-                        {
-                            "match": {
-                                "episode_description": {
-                                    "query": params["q"],
-                                    "fuzziness": 1
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
+            #result = intersection_query(phrase=params["q"])
+            return 
         case "Phrase":
-            query = {"match_phrase": {"episode_description": params["q"]}}
+            result = phrase_query(phrase=params["q"])
         case "Ranking":
-            query = {
+            """ result = {
                 "function_score": {
                     "query": {"match": {"episode_description": params["q"]}},
                     "boost_mode": "multiply",
@@ -72,11 +62,12 @@ def querySelector(params):
                         }
                     ]
                 }
-            }
+            } """
+            result = ''
         case _:
             raise ValueError(f"Unsupported query type: {type}")
 
-    return query
+    return result
 
 if __name__ == "__main__":
     app.run(debug=True)
