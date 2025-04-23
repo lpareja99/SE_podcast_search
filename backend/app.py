@@ -26,48 +26,54 @@ def search():
         "selectedEpisodes": request.args.get("selectedEpisodes", "").split(",") if request.args.get("selectedEpisodes") else []
     }
     
-    transcript_results = querySelector(params)
-    
-    print("results of trasncripts: " , transcript_results)
-    
-    metadata_results = metadata(transcript_results)
-    
-    return metadata_results
+    result = querySelector(params)
+       
+    return result
 
 
 
 def querySelector(params):
-    
-    phrase_query(phrase=params["q"])
+    filter = params['filter']
     type = params['type']
-    result = [] 
-    match type:
-        case "Intersection":
-            #result = intersection_query(phrase=params["q"])
-            return 
-        case "Phrase":
-            result = phrase_query(phrase=params["q"])
-        case "Ranking":
-            """ result = {
-                "function_score": {
-                    "query": {"match": {"episode_description": params["q"]}},
-                    "boost_mode": "multiply",
-                    "functions": [
-                        {
-                            "field_value_factor": {
-                                "field": "ranking_score",
-                                "factor": 1.2,
-                                "modifier": "sqrt"
-                            }
-                        }
-                    ]
-                }
-            } """
-            result = ''
-        case _:
-            raise ValueError(f"Unsupported query type: {type}")
+
+    # Handle filter logic
+    result = handleFilter(filter, params)
 
     return result
+
+
+def handleFilter(filter, params):
+    match filter:
+        case "General":
+            transcript_result = handleType(params)
+            metadata_results = metadata(transcript_result)
+             # TODO: return both results to be able to show both things
+            return metadata_results 
+        case "Title":
+            # Add logic for Title filter
+            return []
+        case "Episode":
+            # Add logic for Episode filter
+            return []
+        case "Author":
+            # Add logic for Author filter
+            return []
+        case _:
+            raise ValueError(f"Unsupported filter type: {filter}")
+
+
+def handleType(params):
+    match params['type']:
+        case "Intersection":
+            # Add logic for Intersection type
+            return []
+        case "Phrase":
+            return phrase_query(phrase=params["q"])
+        case "Ranking":
+            # Add logic for Ranking type
+            return []
+        case _:
+            raise ValueError(f"Unsupported query type: {params['type']}")
 
 if __name__ == "__main__":
     app.run(debug=True)
