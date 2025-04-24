@@ -61,7 +61,6 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
             best_chunk = chunk
             next_chunk = chunk
             #add chunk to best_chunk so chunk duration is chunk_size
-            print(best_chunk["endTime"])
             endTime = get_time_from_string(best_chunk["endTime"])
             startTime = get_time_from_string(best_chunk["startTime"])
             while endTime - startTime < chunk_size:
@@ -91,7 +90,7 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
 def get_time_from_string(str):
     return float(str[:-1])
 
-def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True):
+def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = False):
     """
     Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
 

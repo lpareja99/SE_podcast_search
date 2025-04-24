@@ -33,9 +33,7 @@ def search():
 
 
 def querySelector(params):
-    filter = params['filter']
-
-    # Handle filter logic
+    
     result = handleFilter(params)
 
     return result
@@ -45,33 +43,38 @@ def handleFilter(params):
     match params['filter']:
         case "General":
             transcript_result = handleType(params)
-            print(transcript_result)
             metadata_results = metadata(transcript_result)
-             # TODO: return both results to be able to show both things
-            return metadata_results 
+            
+            joined_results = [
+                {
+                    "transcript": transcript,
+                    "metadata": next(
+                        (meta for meta in metadata_results if meta["show_id"] == transcript["show_id"] and meta["episode_id"] == transcript["episode_id"]),
+                        {}
+                    )
+                }
+                for transcript in transcript_result
+            ]
+            
+            return joined_results  
+        
         case "Title":
-            # Add logic for Title filter
             return []
         case "Episode":
-            # Add logic for Episode filter
             return []
         case "Author":
-            # Add logic for Author filter
             return []
         case _:
-            raise ValueError(f"Unsupported filter type: {filter}")
+            raise ValueError(f"Unsupported filter type: {params['filter']}")
 
 
 def handleType(params):
     match params['type']:
         case "Intersection":
-            # Add logic for Intersection type
             return []
         case "Phrase":
-            print("time: ",params['time'])
             return phrase_query(phrase=params["q"], chunk_size=params['time'])
         case "Ranking":
-            # Add logic for Ranking type
             return []
         case _:
             raise ValueError(f"Unsupported query type: {params['type']}")
