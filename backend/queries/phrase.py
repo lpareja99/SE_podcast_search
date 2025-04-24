@@ -3,7 +3,7 @@ from config import get_es
 INDEX_NAME = "podcast_transcripts"
 
 
-def phrase_search(phrase, index_name=INDEX_NAME, top_k=1, es=None):
+def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
     if es is None:
         es = get_es()
     query = {
@@ -75,7 +75,6 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
                 best_chunk["endTime"] = next_chunk["endTime"]
                 endTime = get_time_from_string(best_chunk["endTime"])
 
-
             break #we retrieve the first chunk that matches
 
     if best_chunk:
@@ -92,7 +91,7 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
 def get_time_from_string(str):
     return float(str[:-1])
 
-def phrase_query(phrase, index_name= INDEX_NAME, top_k = 1, es = None, chunk_size = 30, debug = False):
+def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True):
     """
     Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
 
@@ -118,6 +117,7 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 1, es = None, chunk_siz
     """
 
     documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
+    print(len(documents))
     results = []
     for doc in documents:
         if debug:

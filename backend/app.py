@@ -22,7 +22,7 @@ def search():
         "filter": request.args.get("filter", None),
         "type": request.args.get("type", None),
         "ranking": request.args.get("ranking", None),
-        "time": request.args.get("time", None),
+        "time": int(request.args.get("time", None)),
         "selectedEpisodes": request.args.get("selectedEpisodes", "").split(",") if request.args.get("selectedEpisodes") else []
     }
     
@@ -68,7 +68,8 @@ def handleType(params):
             # Add logic for Intersection type
             return []
         case "Phrase":
-            return phrase_query(phrase=params["q"])
+            print("time: ",params['time'])
+            return phrase_query(phrase=params["q"], chunk_size=params['time'])
         case "Ranking":
             # Add logic for Ranking type
             return []
