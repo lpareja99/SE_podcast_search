@@ -239,3 +239,8 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
     border-radius: 0.5rem;
     overflow: hidden;
 }
+
+mark {
+    background-color: pink; /* Default highlight color */
+    font-weight: normal; /* Ensure it doesn't appear bold */
+}

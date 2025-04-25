@@ -3,6 +3,7 @@ from config import get_es
 from flask_cors import CORS
 from queries.metadata import metadata
 from queries.phrase import phrase_query
+from queries.filter import search_episodes
 
 app = Flask(__name__)
 CORS(app)
@@ -40,8 +41,8 @@ def querySelector(params):
 
 
 def handleFilter(params):
-    match params['filter']:
-        case "General":
+  
+    if (params["filter"] == "general"):
             transcript_result = handleType(params)
             metadata_results = metadata(transcript_result)
             
@@ -57,15 +58,20 @@ def handleFilter(params):
             ]
             
             return joined_results  
+    
+    else:
+        print("filters: ", params)
+        metadata_results = search_episodes(params['q'], params['filter'])
         
-        case "Title":
-            return []
-        case "Episode":
-            return []
-        case "Author":
-            return []
-        case _:
-            raise ValueError(f"Unsupported filter type: {params['filter']}")
+        joined_results = [
+            {
+                "transcript": {},
+                "metadata": meta
+            }
+            for meta in metadata_results
+        ]
+        
+        return joined_results
 
 
 def handleType(params):

@@ -1,7 +1,12 @@
 from config import get_es
+import re
 
 INDEX_NAME = "podcast_transcripts"
 
+def highlight_words(text, phrase):
+    pattern = re.compile(rf'({re.escape(phrase)})', flags=re.IGNORECASE)
+    text = pattern.sub(r'<mark>\1</mark>', text)
+    return text
 
 def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
     if es is None:
@@ -77,10 +82,12 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
             break #we retrieve the first chunk that matches
 
     if best_chunk:
+        highlighted_sentence = highlight_words(best_chunk["sentence"], phrase)
+        print(highlighted_sentence)
         return {
             "show_id": show_id,
             "episode_id": episode_id,
-            "chunk": best_chunk["sentence"],
+            "chunk": highlighted_sentence,
             "start_time": best_chunk["startTime"],
             "end_time": best_chunk["endTime"]
         }
