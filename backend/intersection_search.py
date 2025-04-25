@@ -84,6 +84,8 @@ def format_hits(hits, query_term, n=3, verbose=False):
         valid_chunk_indices = get_intersection_chunk_indices(hit, query_term, verbose=verbose) 
         if len(valid_chunk_indices) == 0:
             continue
+        # to only get the first match as phase search
+        valid_chunk_indices = [valid_chunk_indices[0]]
         results += [
             {
                 'episode_id': hit['_source']['episode_id'],
