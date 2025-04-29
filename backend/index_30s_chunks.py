@@ -94,27 +94,33 @@ def get_30s_chunks(chunks: list):
                     current_chunk['sentence'] += ' ' + chunk['sentence']
                     current_chunk['endTime'] = chunk['endTime']
                     current_chunk['duration'] = tduration
-                
-                merged_chunks.append({
-                    'startTime': current_chunk['startTime'],
-                    'endTime': current_chunk['endTime'],
-                    'sentence': current_chunk['sentence'],
-                    'duration': current_chunk['duration']
-                })
-                
-                if abs(30 - tduration) >= abs(30 - current_chunk['duration']):
-                    current_chunk = {
-                        'startTime': chunk['startTime'],
-                        'endTime': chunk['endTime'],
-                        'sentence': chunk['sentence'],
-                        'duration': chunk_duration
-                    }
-                else:
+
+                    merged_chunks.append({
+                        'startTime': current_chunk['startTime'],
+                        'endTime': current_chunk['endTime'],
+                        'sentence': current_chunk['sentence'],
+                        'duration': current_chunk['duration']
+                    })
+
                     current_chunk = {
                         'startTime': None,
                         'endTime': None,
                         'sentence': '',
                         'duration': 0
+                    }
+
+                if abs(30 - tduration) >= abs(30 - current_chunk['duration']):
+                    merged_chunks.append({
+                        'startTime': current_chunk['startTime'],
+                        'endTime': current_chunk['endTime'],
+                        'sentence': current_chunk['sentence'],
+                        'duration': current_chunk['duration']
+                    })
+                    current_chunk = {
+                        'startTime': chunk['startTime'],
+                        'endTime': chunk['endTime'],
+                        'sentence': chunk['sentence'],
+                        'duration': chunk_duration
                     }
             else:
                 current_chunk['sentence'] += ' ' + chunk['sentence']
