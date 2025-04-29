@@ -50,9 +50,7 @@ def get_intersection_chunk_indices(hit, query_term, verbose=False) -> list[int]:
     return chunk_indices
 
 
-def get_n_30s_chunks(chunks, idx, n=3) -> list:
-    # return list of n chunks centered around idx
-
+def get_n_30s_chunks(chunks, idx, n=3) -> dict:
     left_idx = idx - 1
     right_idx = idx + 1
     count = 1
@@ -71,30 +69,30 @@ def get_n_30s_chunks(chunks, idx, n=3) -> list:
 
         if (left_idx < 0 and right_idx >= len(chunks)):
             break
-
-    return [chunks[i] for i in selected_indices]
+    selected_chunks = [chunks[i] for i in selected_indices]
+    return {
+        'startTime': selected_chunks[0]['startTime'],
+        'endTime': selected_chunks[-1]['endTime'],
+        'sentence': ' '.join([chunk['sentence'] for chunk in selected_chunks])
+    }
 
 
 def format_hits(hits, query_term, n=3, verbose=False):
 
-    # Formats search results into a list of dicts with keys ['episode_id', 'show_id', 'target_index', 'chunks']. Each 'chunks' list contains exactly n 30-second chunks with the target (matched) chunk centered
+    # Formats search results into a list of dicts with keys ['episode_id', 'show_id', 'startTime', 'endTime', 'sentence']. 'sentence' contains the concatenated exact n 30-second chunks with the target (matched) chunk centered
 
     results = []
-    for i, hit in tqdm(enumerate(hits), disable=not verbose):          
-        valid_chunk_indices = get_intersection_chunk_indices(hit, query_term, verbose=verbose) 
+    for hit in tqdm(hits, disable=not verbose):
+        valid_chunk_indices = get_intersection_chunk_indices(hit, query_term, verbose=verbose)
         if len(valid_chunk_indices) == 0:
             continue
-        # to only get the first match as phase search
         valid_chunk_indices = [valid_chunk_indices[0]]
-        results += [
-            {
-                'episode_id': hit['_source']['episode_id'],
-                'show_id': hit['_source']['show_id'],
-                'target_index': idx,
-                'chunks': get_n_30s_chunks(hit['_source']['chunks'], idx, n=n)
-            }
-            for idx in valid_chunk_indices
-        ]
+        for idx in valid_chunk_indices:
+            result = get_n_30s_chunks(hit['_source']['chunks'], idx, n=n)
+            result['episode_id'] = hit['_source']['episode_id']
+            result['show_id'] = hit['_source']['show_id']
+            results.append(result)
+
     return results
 
 
@@ -109,18 +107,15 @@ def main():
     results = format_hits(hits, query_term, n=3, verbose=verbose)
     
     print(f"found {len(results)} matching chunks")
-    
-    # Print a sample of the results
     if results:
         print("\n example result:")
         for sample in results[:5]:
             # sample = results[0]
             print(f"epi id: {sample['episode_id']}")
             print(f"show idx: {sample['show_id']}")
-            print(f"matched chunk idx: {sample['target_index']}")
-            print("chunks retrieved:")
-            for i, chunk in enumerate(sample['chunks']):
-                print(f"  {i+1}. {chunk['sentence'][:100]}...")
+            print(f"setnence: {sample['sentence']}")
+            print(f"start time: {sample['startTime']}")
+            print(f"end time: {sample['endTime']}\n")
 
 if __name__ == "__main__":
     INDEX_NAME = "podcast_transcripts"
