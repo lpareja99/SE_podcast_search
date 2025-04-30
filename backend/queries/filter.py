@@ -22,22 +22,26 @@ def search_episodes(query_text, search_field="show_name", index_name=INDEX_NAME,
     if search_field not in ["show_name", "publisher", "episode_title"]:
         raise ValueError("Invalid search_field. Must be one of: 'show_name', 'publisher', or 'episode_title'")
 
-    print(query_text, search_field)
-    query = {
-        "size": top_k,
-        "query": {
-            "match": {
-                search_field:  f"*{query_text.lower()}*"
+    def run_query(text):
+        query = {
+            "size": top_k,
+            "query": {
+                "match": {
+                    search_field: text
+                }
             }
         }
-        
-    }
+        return es.search(index=index_name, body=query)
 
-    response = es.search(index=index_name, body=query)
+
+    response = run_query(query_text)
+
     
-    print(response)
     results = []
+    seen = set()
     for hit in response["hits"]["hits"]:
+        doc_id = (hit["_source"].get("show_id"), hit["_source"].get("episode_id"))
+        seen.add(doc_id)
         result = {
             "show_id": hit["_source"].get("show_id", ""),
             "episode_id": hit["_source"].get("episode_id", ""),
@@ -47,19 +51,67 @@ def search_episodes(query_text, search_field="show_name", index_name=INDEX_NAME,
             "description": hit["_source"].get("episode_description", ""),
             "rss_link": hit["_source"].get("rss_link", ""),
             "language": hit["_source"].get("language", ""),
+            "query": query_text
         }
         results.append(result)
 
+    if len(results) < top_k:
+        suggest_query = {
+            "suggest": {
+                "suggestion": {
+                    "text": query_text,
+                    "term": {
+                        "field": search_field,
+                        "suggest_mode": "always",
+                        "min_word_length": 3
+                    }
+                }
+            }
+        }
+
+        suggest_response = es.search(index=index_name, body=suggest_query)
+
+        try:
+            suggestions = suggest_response["suggest"]["suggestion"]
+            corrected_words = []
+            for entry in suggestions:
+                if entry["options"]:
+                    corrected_words.append(entry["options"][0]["text"])
+                else:
+                    corrected_words.append(entry["text"])
+
+            corrected_query = " ".join(corrected_words)
+            if corrected_query.lower() != query_text.lower():
+                new_response = run_query(corrected_query)
+                for hit in new_response["hits"]["hits"]:
+                    doc_id = (hit["_source"].get("show_id"), hit["_source"].get("episode_id"))
+                    if doc_id not in seen:
+                        results.append({
+                            "show_id": hit["_source"].get("show_id", ""),
+                            "episode_id": hit["_source"].get("episode_id", ""),
+                            "show": hit["_source"].get("show_name", ""),
+                            "title": hit["_source"].get("episode_title", ""),
+                            "publisher": hit["_source"].get("publisher", ""),
+                            "description": hit["_source"].get("episode_description", ""),
+                            "rss_link": hit["_source"].get("rss_link", ""),
+                            "language": hit["_source"].get("language", ""),
+                            "query": corrected_query
+                        })
+                        seen.add(doc_id)
+        except Exception as e:
+            print(f"Suggestion fallback failed: {e}")
+
     return results
+
 
 
 def debug_print(results):
     for i, result in enumerate(results):
         print(f"\n🎧 Result {i+1}")
-        print(f"Show Name: {result.get('show_name', 'N/A')}")
-        print(f"Episode Title: {result.get('episode_title', 'N/A')}")
+        print(f"Show Name: {result.get('show', 'N/A')}")
+        print(f"Episode Title: {result.get('title', 'N/A')}")
         print(f"Publisher: {result.get('publisher', 'N/A')}")
-        print(f"Episode Description: {result.get('episode_description', '')[:150]}...")
+        print(f"Episode Description: {result.get('description', '')[:150]}...")
         print(f"RSS Link: {result.get('rss_link', 'N/A')}")
         print(f"Show ID: {result.get('show_id', 'N/A')}")
         print(f"Episode ID: {result.get('episode_id', 'N/A')}")

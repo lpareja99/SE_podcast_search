@@ -136,7 +136,7 @@ def phrase_query(phrase, index_name, top_k = 1, es = None, chunk_size = 30, debu
     
 if __name__ == "__main__":  
     es = get_es()
-    phrase = "big cat"
+    phrase = "cat"
     index_name = "podcast_transcripts"
     results = phrase_query(phrase, index_name, top_k = 10, es = es, chunk_size = 30, debug = True)
     print(results)
