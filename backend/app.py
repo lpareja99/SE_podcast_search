@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from config import get_es
 from flask_cors import CORS
+from queries.intersection import intersection_query, intersection_search
 from queries.metadata import metadata
 from queries.phrase import phrase_query
 from queries.filter import search_episodes
@@ -77,7 +78,7 @@ def handleFilter(params):
 def handleType(params):
     match params['type']:
         case "Intersection":
-            return []
+            return intersection_query(params["q"], params["time"])
         case "Phrase":
             return phrase_query(phrase=params["q"], chunk_size=params['time'])
         case "Ranking":
