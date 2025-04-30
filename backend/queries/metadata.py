@@ -41,13 +41,17 @@ def metadata(transcripts):
         {
             "show_id": hit["_source"]["show_id"],
             "episode_id": hit["_source"]["episode_id"],
-            "title": hit["_source"].get("episode_title", ""),
+            "title": hit["_source"].get("episode_name", ""),
             "description": hit["_source"].get("episode_description", ""),
             "show": hit["_source"].get("show_name", ""),
             "duration": hit["_source"].get("duration", ""),  
             "language": hit["_source"].get("language", ""), 
             "publisher": hit["_source"].get("publisher", ""),  
-            "rss_link": hit["_source"].get("rss_link", "")  
+            "rss_link": hit["_source"].get("rss_link", ""),
+            "episode_image": hit["_source"].get("image_episode", ""),
+            "show_image": hit["_source"].get("image_show", ""),
+            "audio": hit["_source"].get("audio_url", "")
+
         }
         for hit in metadata_response["hits"]["hits"]
     ]

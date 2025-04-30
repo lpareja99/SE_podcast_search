@@ -8,35 +8,133 @@
     --search-border: #E8E1E4;
 }
 
+/* Base styles using variables */
 body, .container {
     background-color: var(--background-color);
 }
 
+/* Text color utilities */
+.text-primary, .card-title.text-primary {
+    color: var(--main-button) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-text) !important;
+}
+
+.podcast-title, h1, h2, h3, h4, h5, h6 {
+    color: var(--main-text);
+    font-weight: 600;
+}
+
+.main-text {
+    color: var(--main-text);
+}
+
+.secondary-text {
+    color: var(--secondary-text);
+}
+
+/* Button styles */
+.btn-primary {
+    background-color: var(--main-button) !important;
+    border-color: var(--main-button) !important;
+    color: white !important;
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--secondary-button) !important;
+    border-color: var(--secondary-button) !important;
+}
+
+.btn-outline-primary {
+    background-color: transparent !important;
+    color: var(--main-button) !important;
+    border-color: var(--main-button) !important;
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+    background-color: var(--secondary-button) !important;
+    color: white !important;
+    border-color: var(--secondary-button) !important;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-button) !important;
+    border-color: var(--secondary-button) !important;
+    color: white !important;
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+    background-color: var(--main-button) !important;
+    border-color: var(--main-button) !important;
+}
+
+.btn-outline-secondary {
+    background-color: transparent !important;
+    color: var(--secondary-button) !important;
+    border-color: var(--secondary-button) !important;
+    border-radius: 15px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active {
+    background-color: var(--main-button) !important;
+    color: white !important;
+    border-color: var(--main-button) !important;
+}
+
+.btn-outline-light:hover {
+    background-color: #FFC0CB; /* Pink color */
+    color:  var(--main-text) !important;
+    border-color: #FFC0CB; /* Match the border with the background */
+}
+
+/* Card and container styles */
 .card, .list-group-item {
     background-color: var(--search-bg);
     border: 1px solid var(--search-border);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-h1.podcast-title, .podcast-title {
-    color: var(--main-text);
-    font-weight: 600;
+/* Background utilities */
+.bg-primary {
+    background-color: var(--main-button) !important;
 }
 
-p, .main-text, .secondary-text {
-    color: var(--secondary-text);
+.bg-outline-primary {
+    color: var(--main-button);
+    border: 1px solid var(--main-button);
+    background-color: transparent;
 }
 
+.bg-secondary {
+    background-color: var(--secondary-button) !important;
+}
+
+.bg-light {
+    background-color: var(--search-bg) !important;
+}
+
+/* Form controls */
 .form-control, .search-bar {
     background-color: var(--search-bg);
     border: 1px solid var(--search-border);
     color: var(--main-text);
-}
-
-.search-bar-large {
-    height: 3.5rem; /* Increase height */
-    font-size: 1.25rem; /* Increase font size */
-    padding: 0.75rem 1.25rem; /* Adjust padding */
 }
 
 .form-control:focus {
@@ -44,6 +142,13 @@ p, .main-text, .secondary-text {
     box-shadow: 0 0 0 0.2rem rgba(156, 70, 104, 0.25);
 }
 
+.search-bar-large {
+    height: 3.5rem;
+    font-size: 1.25rem;
+    padding: 0.75rem 1.25rem;
+}
+
+/* Form range inputs */
 .form-range {
     accent-color: var(--main-button);
     width: 100%;
@@ -56,131 +161,7 @@ p, .main-text, .secondary-text {
     cursor: pointer;
 }
 
-button {
-    background-color: var(--main-button);
-    border: none;
-    color: white;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: var(--secondary-button);
-}
-
-button.tag-btn, button.ranking-tag-btn {
-    background-color: transparent;
-    border: 2px solid var(--main-button);
-    color: var(--main-button);
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-button.tag-btn.selected-tag, button.ranking-tag-btn.selected-ranking-tag {
-    background-color: var(--main-button);
-    color: white;
-}
-
-button.ranking-tag-btn:disabled {
-    background-color: transparent;
-    border-color: var(--secondary-text);
-    color: var(--secondary-text);
-    cursor: not-allowed;
-}
-
-button.ranking-tag-btn.selected-ranking-tag:disabled {
-    background-color: var(--secondary-text);
-    color: white;
-    border-color: var(--secondary-text);
-}
-
-.btn-primary {
-    background-color: var(--main-button);
-    color: white;
-    border: 2px solid var(--main-button);
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-    font-size: 0.8rem; /* Smaller font size */
-    padding: 0.3rem 0.8rem; /* Reduced padding */
-    border-radius: 15px; /* Smaller border radius */
-}
-
-.btn-outline-primary {
-    background-color: transparent;
-    color: var(--main-button);
-    border: 2px solid var(--main-button);
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-    font-size: 0.8rem; /* Smaller font size */
-    padding: 0.3rem 0.8rem; /* Reduced padding */
-    border-radius: 15px; /* Smaller border radius */
-}
-
-.btn-primary:hover, .btn-outline-primary:hover {
-    background-color: var(--secondary-button);
-    color: white;
-    border-color: var(--secondary-button);
-}
-
-.btn-secondary {
-    background-color: var(--secondary-button);
-    color: white;
-    border: 2px solid var(--secondary-button);
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-secondary {
-    background-color: transparent;
-    color: var(--secondary-button);
-    border: 2px solid var(--secondary-button);
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover, .btn-outline-secondary:hover {
-    background-color: var(--main-button);
-    color: white;
-    border-color: var(--main-button);
-}
-
-.rank-badge {
-    font-family: 'Brush Script MT', monospace;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--main-button);
-    line-height: 1;
-}
-
-.episode-checkbox {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    transform: scale(1.2);
-    cursor: pointer;
-}
-
-.search-bar-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.search-bar {
-    flex-grow: 1;
-    height: 3rem;
-    font-size: 1.2rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-}
-
+/* Search icon button */
 .search-icon-btn {
     background-color: var(--main-button);
     border: none;
@@ -202,6 +183,35 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
     font-size: 1.5rem;
 }
 
+/* Tag buttons */
+.tag-btn, .ranking-tag-btn {
+    background-color: transparent;
+    border: 2px solid var(--main-button);
+    color: var(--main-button);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.tag-btn.selected-tag, .ranking-tag-btn.selected-ranking-tag {
+    background-color: var(--main-button);
+    color: white;
+}
+
+.ranking-tag-btn:disabled {
+    background-color: transparent;
+    border-color: var(--secondary-text);
+    color: var(--secondary-text);
+    cursor: not-allowed;
+}
+
+.ranking-tag-btn.selected-ranking-tag:disabled {
+    background-color: var(--secondary-text);
+    color: white;
+    border-color: var(--secondary-text);
+}
+
+/* List items */
 .list-group-item:hover {
     background-color: rgba(156, 70, 104, 0.1);
     border-color: var(--main-button);
@@ -214,19 +224,46 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
     border-left: 4px solid var(--main-button);
 }
 
+/* Rank badge */
+.rank-badge {
+    font-family: 'Brush Script MT', monospace;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--main-button);
+    line-height: 1;
+}
+
+/* Checkbox */
+.episode-checkbox {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Search container */
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Accordion styling */
 .accordion-body {
-    background-color: white;
+    background-color: var(--search-bg);
     border-top: 1px solid var(--search-border);
 }
 
 .accordion-button {
-    background-color: white;
+    background-color: var(--search-bg);
     color: var(--main-text);
     border: none;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: white;
+    background-color: var(--search-bg);
     box-shadow: none;
 }
 
@@ -240,7 +277,8 @@ button.ranking-tag-btn.selected-ranking-tag:disabled {
     overflow: hidden;
 }
 
+/* Text highlighting */
 mark {
-    background-color: pink; /* Default highlight color */
-    font-weight: normal; /* Ensure it doesn't appear bold */
+    background-color: rgba(156, 70, 104, 0.2);
+    font-weight: normal;
 }
