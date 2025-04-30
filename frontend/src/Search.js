@@ -80,16 +80,6 @@ const Search = () => {
                 return <span key={idx}>{chunk}</span>;
             });
     
-            // Sponsored sections
-            if (index !== 0) {
-                return (
-                    <div key={index} className="mb-3 p-2 bg-light rounded">
-                        <small className="text-muted">Sponsored Content</small><br />
-                        {processedPart}
-                    </div>
-                );
-            }
-    
             // Main description
             return (
                 <div key={index} className="mb-3">
@@ -102,6 +92,7 @@ const Search = () => {
 
     const handleSearch = async () => {
         setIsLoading(true);
+        setSelectedShow(null);
         const params = new URLSearchParams({
             q: query,
             filter: selectedTag,
