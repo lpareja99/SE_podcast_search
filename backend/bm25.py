@@ -67,6 +67,16 @@ def bm25_query(query_term, index_name, top_k = 1, es = None, chunk_size = 30, de
             source.get("chunks", [{}])[0]
         )
 
+        chunk_text = best_chunk.get("sentence", "")
+        if highlight_clean and highlight_clean.lower() in chunk_text.lower():
+            start_idx = chunk_text.lower().index(highlight_clean.lower())
+            end_idx = start_idx + len(highlight_clean)
+            highlighted_chunk_text = (
+                chunk_text[:start_idx] + highlight_raw + chunk_text[end_idx:]
+            )
+        else:
+            highlighted_chunk_text = chunk_text
+
         results.append({
             "show": source["show_id"],
             "episode": source["episode_id"],
@@ -74,6 +84,7 @@ def bm25_query(query_term, index_name, top_k = 1, es = None, chunk_size = 30, de
             "start_time" : best_chunk.get("startTime"),
             "end_time" : best_chunk.get("endTime"),
             "matched_chunk": {
+                "text_highlight" : highlighted_chunk_text,
                 "text": best_chunk.get("sentence"),
                 "highlight": highlight_raw
             }
