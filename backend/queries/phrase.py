@@ -11,24 +11,79 @@ def highlight_words(text, phrase):
 def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
     if es is None:
         es = get_es()
-    query = {
-        "size": top_k,
-        "_source": ["show_id", "episode_id", "chunks"],
-        "query": {
-            "match_phrase": {
-                "chunks.sentence": phrase
+    
+    def do_query(q):
+        query = {
+            "size": top_k,
+            "_source": ["show_id", "episode_id", "chunks"],
+            "query": {
+                "match_phrase": {
+                    "chunks.sentence": q
+                }
             }
         }
-    }
+        return es.search(index=index_name, body=query)
 
-    response = es.search(index=index_name, body=query)
+    response = do_query(phrase)
     results = []
+
+    seen = set() # to avoid duplicates
+
     for hit in response["hits"]["hits"]:
         source = hit["_source"]
+        doc_id = (source["show_id"], source["episode_id"])
+        seen.add(doc_id)
         results.append({
             "show_id": source["show_id"],
-            "episode_id": source["episode_id"]
+            "episode_id": source["episode_id"],
+            "query" : phrase
         })
+
+    if len(results) < top_k: # if we don't have enough results, try to get suggestions
+        suggest_query = {
+            "suggest": {
+                "word_suggest": {
+                    "text": phrase,
+                    "term": {
+                        "field": "chunks.sentence",
+                        "suggest_mode": "always",
+                        "min_word_length": 3
+                    }
+                }
+            }
+        }
+        suggest_response = es.search(index=index_name, body=suggest_query)
+
+        try:
+            suggestions = suggest_response["suggest"]["word_suggest"]
+            corrected_words = []
+
+            for entry in suggestions:
+                if entry["options"]:
+                    # take the top suggestion (one with the best score)
+                    corrected_words.append(entry["options"][0]["text"]) 
+                else:
+                    # keep original if no suggestion
+                    corrected_words.append(entry["text"])
+
+            suggested_phrase = " ".join(corrected_words)
+            if suggested_phrase:
+                new_response = do_query(suggested_phrase)
+
+                for hit in new_response["hits"]["hits"]:
+                    source = hit["_source"]
+                    doc_id = (source["show_id"], source["episode_id"])
+                    if doc_id not in seen:
+                        results.append({
+                            "show_id": source["show_id"],
+                            "episode_id": source["episode_id"],
+                            "query": suggested_phrase
+                        })
+                        seen.add(doc_id)
+                    if len(results) >= top_k:
+                        break
+        except (KeyError, IndexError):
+            pass
 
     return results
 
@@ -89,7 +144,8 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
             "episode_id": episode_id,
             "chunk": highlighted_sentence,
             "start_time": best_chunk["startTime"],
-            "end_time": best_chunk["endTime"]
+            "end_time": best_chunk["endTime"],
+            "query": phrase
         }
     else:
         return None
@@ -123,13 +179,12 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
     """
 
     documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
-    print(len(documents))
     results = []
     for doc in documents:
         if debug:
             print(f"Show ID: {doc['show_id']}, Episode ID: {doc['episode_id']}")
             print("\n🎯 Best Chunk in Episode:")
-        best_chunk = get_first_chunk(doc['show_id'], doc['episode_id'], phrase, index_name, es=es, chunk_size=chunk_size)
+        best_chunk = get_first_chunk(doc['show_id'], doc['episode_id'], doc['query'], index_name, es=es, chunk_size=chunk_size)
         if best_chunk:
             results.append(best_chunk)
             if debug:
@@ -137,6 +192,8 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
                 print(f"Episode: {best_chunk['episode_id']}")
                 print(f"Chunk: {best_chunk['chunk']}")
                 print(f"Time: {best_chunk['start_time']} → {best_chunk['end_time']}")
+                print(f"Query: {best_chunk['query']} (original was {phrase})")
+                print("|----------------------------------|\n\n")
         else:
             print("No chunk found for.")
     return results
@@ -144,7 +201,6 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
     
 if __name__ == "__main__":  
     es = get_es()
-    q = "big cat"
+    q = "climte chnge"
     results = phrase_query(q, index_name=INDEX_NAME, top_k = 10, es = es, chunk_size = 30, debug = True)
-    print(results)
  
