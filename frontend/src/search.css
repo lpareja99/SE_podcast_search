@@ -7,278 +7,169 @@
     --search-bg: #FFFFFF;
     --search-border: #E8E1E4;
 }
-
-/* Base styles using variables */
-body, .container {
-    background-color: var(--background-color);
+/* Main container styling */
+.podcast-container {
+  background-color: #f8f9fa;
+  color: #212529;
+  min-height: 100vh;
 }
 
-/* Text color utilities */
-.text-primary, .card-title.text-primary {
-    color: var(--main-button) !important;
+/* Search bar styling */
+.search-input {
+  height: 50px;
+  border-radius: 25px 0 0 25px;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.text-secondary {
-    color: var(--secondary-text) !important;
+.search-button {
+  border-radius: 0 25px 25px 0;
+  width: 60px;
 }
 
-.podcast-title, h1, h2, h3, h4, h5, h6 {
-    color: var(--main-text);
-    font-weight: 600;
+/* Podcast card styling (Spotify-like) */
+.podcast-card {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  height: 100%;
 }
 
-.main-text {
-    color: var(--main-text);
+.podcast-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
-.secondary-text {
-    color: var(--secondary-text);
+.podcast-card.selected {
+  border: 2px solid #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
 }
 
-/* Button styles */
-.btn-primary {
-    background-color: var(--main-button) !important;
-    border-color: var(--main-button) !important;
-    color: white !important;
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
+.podcast-card-inner {
+  padding: 0;
 }
 
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
-    background-color: var(--secondary-button) !important;
-    border-color: var(--secondary-button) !important;
+.podcast-image-container {
+  position: relative;
+  padding-top: 100%; /* 1:1 Aspect Ratio */
+  overflow: hidden;
 }
 
-.btn-outline-primary {
-    background-color: transparent !important;
-    color: var(--main-button) !important;
-    border-color: var(--main-button) !important;
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
+.podcast-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
-.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
-    background-color: var(--secondary-button) !important;
-    color: white !important;
-    border-color: var(--secondary-button) !important;
+.podcast-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.btn-secondary {
-    background-color: var(--secondary-button) !important;
-    border-color: var(--secondary-button) !important;
-    color: white !important;
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
-    background-color: var(--main-button) !important;
-    border-color: var(--main-button) !important;
-}
-
-.btn-outline-secondary {
-    background-color: transparent !important;
-    color: var(--secondary-button) !important;
-    border-color: var(--secondary-button) !important;
-    border-radius: 15px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active {
-    background-color: var(--main-button) !important;
-    color: white !important;
-    border-color: var(--main-button) !important;
-}
-
-.btn-outline-light:hover {
-    background-color: #FFC0CB; /* Pink color */
-    color:  var(--main-text) !important;
-    border-color: #FFC0CB; /* Match the border with the background */
-}
-
-/* Card and container styles */
-.card, .list-group-item {
-    background-color: var(--search-bg);
-    border: 1px solid var(--search-border);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* Background utilities */
-.bg-primary {
-    background-color: var(--main-button) !important;
-}
-
-.bg-outline-primary {
-    color: var(--main-button);
-    border: 1px solid var(--main-button);
-    background-color: transparent;
-}
-
-.bg-secondary {
-    background-color: var(--secondary-button) !important;
-}
-
-.bg-light {
-    background-color: var(--search-bg) !important;
-}
-
-/* Form controls */
-.form-control, .search-bar {
-    background-color: var(--search-bg);
-    border: 1px solid var(--search-border);
-    color: var(--main-text);
-}
-
-.form-control:focus {
-    border-color: var(--main-button);
-    box-shadow: 0 0 0 0.2rem rgba(156, 70, 104, 0.25);
-}
-
-.search-bar-large {
-    height: 3.5rem;
-    font-size: 1.25rem;
-    padding: 0.75rem 1.25rem;
-}
-
-/* Form range inputs */
-.form-range {
-    accent-color: var(--main-button);
-    width: 100%;
-}
-
-.form-range::-webkit-slider-thumb {
-    background-color: var(--main-button);
-    border: 2px solid var(--main-button);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-/* Search icon button */
-.search-icon-btn {
-    background-color: var(--main-button);
-    border: none;
-    color: white;
-    height: 3rem;
-    width: 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-}
-
-.search-icon-btn:hover {
-    background-color: var(--secondary-button);
-}
-
-.search-icon-btn i {
-    font-size: 1.5rem;
-}
-
-/* Tag buttons */
-.tag-btn, .ranking-tag-btn {
-    background-color: transparent;
-    border: 2px solid var(--main-button);
-    color: var(--main-button);
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.tag-btn.selected-tag, .ranking-tag-btn.selected-ranking-tag {
-    background-color: var(--main-button);
-    color: white;
-}
-
-.ranking-tag-btn:disabled {
-    background-color: transparent;
-    border-color: var(--secondary-text);
-    color: var(--secondary-text);
-    cursor: not-allowed;
-}
-
-.ranking-tag-btn.selected-ranking-tag:disabled {
-    background-color: var(--secondary-text);
-    color: white;
-    border-color: var(--secondary-text);
-}
-
-/* List items */
-.list-group-item:hover {
-    background-color: rgba(156, 70, 104, 0.1);
-    border-color: var(--main-button);
-    transform: scale(1.02);
-    transition: transform 0.2s ease-in-out;
-}
-
-.list-group-item.selected-item {
-    background-color: rgba(156, 70, 104, 0.2);
-    border-left: 4px solid var(--main-button);
-}
-
-/* Rank badge */
 .rank-badge {
-    font-family: 'Brush Script MT', monospace;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--main-button);
-    line-height: 1;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 10;
 }
 
-/* Checkbox */
-.episode-checkbox {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    transform: scale(1.2);
-    cursor: pointer;
+.checkbox-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
 }
 
-/* Search container */
-.search-bar-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+.podcast-info {
+  padding: 12px;
 }
 
-/* Accordion styling */
-.accordion-body {
-    background-color: var(--search-bg);
-    border-top: 1px solid var(--search-border);
+.podcast-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #212529;
 }
 
-.accordion-button {
-    background-color: var(--search-bg);
-    color: var(--main-text);
-    border: none;
+.podcast-episode {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 0;
 }
 
-.accordion-button:not(.collapsed) {
-    background-color: var(--search-bg);
-    box-shadow: none;
+/* Results heading */
+.results-heading {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 10px;
 }
 
-.accordion-button:focus {
-    box-shadow: none;
+/* Audio player styling */
+.audio-player-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.accordion-item {
-    border: 1px solid var(--search-border);
-    border-radius: 0.5rem;
-    overflow: hidden;
+audio {
+  width: 100%;
+  height: 50px;
 }
 
-/* Text highlighting */
-mark {
-    background-color: rgba(156, 70, 104, 0.2);
-    font-weight: normal;
+/* Empty state styling */
+.empty-state {
+  padding: 60px 0;
+}
+
+/* Description container */
+.description-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .podcast-title {
+    font-size: 14px;
+  }
+  
+  .podcast-episode {
+    font-size: 12px;
+  }
+  
+  .rank-badge {
+    width: 25px;
+    height: 25px;
+    font-size: 12px;
+  }
 }

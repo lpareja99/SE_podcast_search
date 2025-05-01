@@ -12,9 +12,8 @@ def highlight_words(text, phrase):
     for word in words:
         # Match whole word, case-insensitive, word boundaries
         pattern = re.compile(rf'\b({re.escape(word)})\b', flags=re.IGNORECASE)
-        text = pattern.sub(r'<mark>\1</mark>', text)
+        text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)  # Bold, italicize, and highlight
     return text
-
 
 def intersection_search(query_term, client, index_name, size=10, verbose=False):
 
@@ -158,6 +157,7 @@ def format_hits(hits, query_term, n=3, verbose=False):
             result['episode_id'] = hit['_source']['episode_id']
             result['show_id'] = hit['_source']['show_id']
             result['query'] = hit['_source']['query']
+            result['chunk'] = highlight_words(result['chunk'], query_term)
             results.append(result)
 
     return results
