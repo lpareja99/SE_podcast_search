@@ -1,6 +1,5 @@
 from config import get_es
 
-
 def phrase_search(phrase, index_name, top_k=1, es=None):
     if es is None:
         es = get_es()
@@ -67,12 +66,10 @@ def get_first_chunk(show_id, episode_id, phrase, index_name, es=None, chunk_size
                 if doc["chunks"].index(next_chunk) == len(doc["chunks"]) - 1:
                     break
                 #add next chunk to best_chunk
-                
                 next_chunk = doc["chunks"][doc["chunks"].index(next_chunk) + 1]
                 best_chunk["sentence"] += " " + next_chunk["sentence"]
                 best_chunk["endTime"] = next_chunk["endTime"]
                 endTime = get_time_from_string(best_chunk["endTime"])
-
 
             break #we retrieve the first chunk that matches
 
@@ -81,8 +78,8 @@ def get_first_chunk(show_id, episode_id, phrase, index_name, es=None, chunk_size
             "show": show_id,
             "episode": episode_id,
             "chunk": best_chunk["sentence"],
-            "start_time": best_chunk["startTime"],
-            "end_time": best_chunk["endTime"]
+            "start_time": get_time_from_string(best_chunk["startTime"]),
+            "end_time": get_time_from_string(best_chunk["endTime"])
         }
     else:
         return None
@@ -118,19 +115,13 @@ def phrase_query(phrase, index_name, top_k = 1, es = None, chunk_size = 30, debu
     documents = phrase_search(phrase, index_name,top_k= top_k, es=es)
     results = []
     for doc in documents:
-        if debug:
-            print(f"Show ID: {doc['show']}, Episode ID: {doc['episode']}")
-            print("\n🎯 Best Chunk in Episode:")
         best_chunk = get_first_chunk(doc['show'], doc['episode'], phrase, index_name, es=es, chunk_size=chunk_size)
-        if best_chunk:
+        
+        if best_chunk: 
             results.append(best_chunk)
-            if debug:
-                print(f"Show: {best_chunk['show']}")
-                print(f"Episode: {best_chunk['episode']}")
-                print(f"Chunk: {best_chunk['chunk']}")
-                print(f"Time: {best_chunk['start_time']} → {best_chunk['end_time']}")
         else:
             print("No chunk found for.")
+            
     return results
 
     
