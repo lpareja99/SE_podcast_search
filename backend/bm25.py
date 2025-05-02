@@ -7,7 +7,7 @@ def strip_highlight_tags(text):
 
 def highlight_words(text, phrase):
     words = phrase.strip().split()
-    
+
     for word in words:
         pattern = re.compile(rf'\b({re.escape(word)})\b', flags=re.IGNORECASE)
         text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
@@ -117,11 +117,10 @@ def bm25_query(query_term, index_name, top_k = 1, es = None, chunk_size = 30, de
             "score": hit["_score"],
             "start_time" : n_chunks_result.get("start_time"),
             "end_time" : n_chunks_result.get("end_time"),
-            "matched_chunk": {
-                #"text_highlight" : highlighted_chunk_text,
-                "text": highlight_words(n_chunks_result.get("chunk"),query_term) ,
-                #"highlight": highlight_raw
-            }
+            "chunk": highlight_words(n_chunks_result.get("chunk"),query_term)
+            #"text_highlight" : highlighted_chunk_text, highlight_words(n_chunks_result.get("chunk"),query_term) ,
+            #"highlight": highlight_raw
+            
         })
 
     return results
@@ -179,6 +178,6 @@ def add_chunks_together(chunks, matched_chunk, chunk_size=30):
 if __name__ == "__main__":  
     es = get_es()
     query_term = "dog"
-    index_name = "podcast_transcripts"
+    index_name = "podcast_transcripts2"
     results = bm25_query(query_term, index_name, top_k = 3, es = es, chunk_size = 90, debug = True)
     print(results)
