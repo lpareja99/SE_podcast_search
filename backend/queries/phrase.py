@@ -8,10 +8,46 @@ def highlight_words(text, phrase):
     text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
     return text
 
+
+def get_suggested_phrase(phrase, es, index_name):
+    suggest_query = {
+        "suggest": {
+            "word_suggest": {
+                "text": phrase,
+                "term": {
+                    "field": "chunks.sentence",
+                    "suggest_mode": "always",
+                    "min_word_length": 2,
+                    "max_edits": 2,
+                    "prefix_length": 1
+                }
+            }
+        }
+    }
+
+    try:
+        suggest_response = es.search(index=index_name, body=suggest_query)
+        suggestions = suggest_response["suggest"]["word_suggest"]
+        print(suggestions)
+        corrected_words = []
+
+        for entry in suggestions:
+            if entry["options"]:
+                corrected_words.append(entry["options"][0]["text"])
+            else:
+                corrected_words.append(entry["text"])
+
+        suggested_phrase = " ".join(corrected_words)
+        return suggested_phrase if suggested_phrase.lower() != phrase.lower() else None
+
+    except (KeyError, IndexError):
+        return None
+    
+    
 def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
     if es is None:
         es = get_es()
-    
+
     def do_query(q):
         query = {
             "size": top_k,
@@ -26,8 +62,7 @@ def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
 
     response = do_query(phrase)
     results = []
-
-    seen = set() # to avoid duplicates
+    seen = set()
 
     for hit in response["hits"]["hits"]:
         source = hit["_source"]
@@ -36,56 +71,33 @@ def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
         results.append({
             "show_id": source["show_id"],
             "episode_id": source["episode_id"],
-            "query" : phrase
+            "query": phrase
         })
 
-    if len(results) < top_k: # if we don't have enough results, try to get suggestions
-        suggest_query = {
-            "suggest": {
-                "word_suggest": {
-                    "text": phrase,
-                    "term": {
-                        "field": "chunks.sentence",
-                        "suggest_mode": "always",
-                        "min_word_length": 3
-                    }
-                }
-            }
-        }
-        suggest_response = es.search(index=index_name, body=suggest_query)
+    print(len(results))
+    if len(results) < top_k:
+        print("getting more results since there is not enough")
+        suggested_phrase = get_suggested_phrase(phrase, es, index_name)
+        print(suggested_phrase)
+        if suggested_phrase:
+            print(f"Suggested query: {suggested_phrase}")
+            new_response = do_query(suggested_phrase)
 
-        try:
-            suggestions = suggest_response["suggest"]["word_suggest"]
-            corrected_words = []
-
-            for entry in suggestions:
-                if entry["options"]:
-                    # take the top suggestion (one with the best score)
-                    corrected_words.append(entry["options"][0]["text"]) 
-                else:
-                    # keep original if no suggestion
-                    corrected_words.append(entry["text"])
-
-            suggested_phrase = " ".join(corrected_words)
-            if suggested_phrase:
-                new_response = do_query(suggested_phrase)
-
-                for hit in new_response["hits"]["hits"]:
-                    source = hit["_source"]
-                    doc_id = (source["show_id"], source["episode_id"])
-                    if doc_id not in seen:
-                        results.append({
-                            "show_id": source["show_id"],
-                            "episode_id": source["episode_id"],
-                            "query": suggested_phrase
-                        })
-                        seen.add(doc_id)
-                    if len(results) >= top_k:
-                        break
-        except (KeyError, IndexError):
-            pass
+            for hit in new_response["hits"]["hits"]:
+                source = hit["_source"]
+                doc_id = (source["show_id"], source["episode_id"])
+                if doc_id not in seen:
+                    results.append({
+                        "show_id": source["show_id"],
+                        "episode_id": source["episode_id"],
+                        "query": suggested_phrase
+                    })
+                    seen.add(doc_id)
+                if len(results) >= top_k:
+                    break
 
     return results
+
 
 def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None, chunk_size = 30):
     
@@ -138,7 +150,6 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
 
     if best_chunk:
         highlighted_sentence = highlight_words(best_chunk["sentence"], phrase)
-        print(highlighted_sentence)
         return {
             "show_id": show_id,
             "episode_id": episode_id,
@@ -199,10 +210,12 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
             }
         }
         response = es.search(index=index_name, body=query)
-        print("selected_episodes: ", response)
+        #print("selected_episodes: ", response)
     else:
         # Perform normal phrase search
         response = phrase_search(phrase, index_name=index_name, top_k=top_k, es=es)
+        
+        #print("phrase_search: ", response)
         
     
 
