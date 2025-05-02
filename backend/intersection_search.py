@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from elasticsearch import Elasticsearch 
+
 from config import get_es
 
 

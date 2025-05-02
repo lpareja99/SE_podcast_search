@@ -5,7 +5,7 @@ INDEX_NAME = "podcast_transcripts"
 
 def highlight_words(text, phrase):
     pattern = re.compile(rf'({re.escape(phrase)})', flags=re.IGNORECASE)
-    text = pattern.sub(r'<mark>\1</mark>', text)
+    text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
     return text
 
 def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
@@ -153,7 +153,8 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
 def get_time_from_string(str):
     return float(str[:-1])
 
-def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = False):
+
+def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = False, selected_episodes = None):
     """
     Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
 
@@ -177,10 +178,37 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
             - start_time (str): Start time of the chunk (e.g., '5.43s').
             - end_time (str): End time of the chunk (e.g., '35.29s').
     """
+    
+    if es is None:
+        es = get_es()
+        
+    # Perform the more_like_this based on whether `selected_episodes` is provided
+    if selected_episodes:
+        # Perform 'more_like_this' query for selected episodes
+        like_text = [{"_index": index_name, "_id": episode_id} for episode_id in selected_episodes]
+        query = {
+            "size": top_k,
+            "_source": ["show_id", "episode_id", "chunks"],
+            "query": {
+                "more_like_this": {
+                    "fields": ["chunks.sentence"],
+                    "like": like_text,
+                    "min_term_freq": 1,
+                    "max_query_terms": 12
+                }
+            }
+        }
+        response = es.search(index=index_name, body=query)
+        print("selected_episodes: ", response)
+    else:
+        # Perform normal phrase search
+        response = phrase_search(phrase, index_name=index_name, top_k=top_k, es=es)
+        
+    
 
-    documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
+    #documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
     results = []
-    for doc in documents:
+    for doc in response:
         if debug:
             print(f"Show ID: {doc['show_id']}, Episode ID: {doc['episode_id']}")
             print("\n🎯 Best Chunk in Episode:")
