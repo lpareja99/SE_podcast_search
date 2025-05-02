@@ -6,17 +6,17 @@ from config import get_es
 
 INDEX_NAME = "podcast_transcripts"
 
-
+# TODO: Match partial words
 def highlight_words(text, phrase):
     words = phrase.strip().split()
     for word in words:
         # Match whole word, case-insensitive, word boundaries
-        pattern = re.compile(rf'\b({re.escape(word)})\b', flags=re.IGNORECASE)
-        text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)  # Bold, italicize, and highlight
+        pattern = re.compile(rf'({re.escape(word)})', flags=re.IGNORECASE)
+        text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
     return text
 
-def intersection_search(query_term, client, index_name, size=10, verbose=False):
 
+def intersection_search(query_term, client, index_name, size=10, verbose=False, selectedEpisodes=None):
 
     def run_query(query):
         query_body = {
@@ -47,6 +47,8 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False):
         seen.add(doc_id)
         hit['_source']['query'] = query_term
     
+    # TODO: Put this in a separate function
+    # TODO: get suggested queries
     if len(hits) < size:
                 suggest_query = {
                     "suggest": {
@@ -61,6 +63,7 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False):
                     }
                 }
                 suggest_response = client.search(index=index_name, body=suggest_query)
+                print(suggest_response)
                 try:
       
                     suggestions = suggest_response["suggest"]["suggestion"]
@@ -90,6 +93,45 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False):
                                 break
                 except (KeyError, IndexError):
                     pass
+
+    if verbose:
+        print(f"Total hits: {response['hits']['total']['value']}")
+        print(f"Number of hits returned: {len(hits)}")
+    return hits
+
+
+def intersection_mlt_search(query_term, relevant_chunks, client, index_name, size=10, verbose=False): 
+    # expect relevant_chunks data struct and type as the one of format_hits in intersection_search.py
+
+    like_text = [chunk["sentence"] for chunk in relevant_chunks]
+
+    query_body = {
+        "size": size,
+        "query": {
+            "bool": {
+                "should": [
+                    {
+                        "more_like_this": {
+                            "fields": ["chunks.sentence"],
+                            "like": like_text,
+                        }
+                    },
+                    {
+                        "match": {
+                            "chunks.sentence": {
+                                "query": query_term,
+                                "operator": "and",
+                                "boost": 2.0  # boost docs that match the original query, avoid topic drift due t the added like_text
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+        
+    response = client.search(index=index_name, body=query_body)
+    hits = response['hits']['hits']
 
     if verbose:
         print(f"Total hits: {response['hits']['total']['value']}")
@@ -136,10 +178,11 @@ def get_n_30s_chunks(chunks, idx, n=3) -> dict:
             break
     selected_chunks = [chunks[i] for i in selected_indices]
     return {
-        'start_time': selected_chunks[0]['startTime'],
-        'end_time': selected_chunks[-1]['endTime'],
+        'startTime': selected_chunks[0]['startTime'],
+        'endTime': selected_chunks[-1]['endTime'],
         'chunk': ' '.join([chunk['sentence'] for chunk in selected_chunks])
     }
+
 
 
 def format_hits(hits, query_term, n=3, verbose=False):
@@ -163,13 +206,25 @@ def format_hits(hits, query_term, n=3, verbose=False):
     return results
 
 
-def intersection_query(query, chunck_size, verbose=False):
+def intersection_query(query, chunck_size, verbose=True, selected_episodes=None):
     client = get_es()
-    
     n = int(chunck_size / 30)
     
-    hits = intersection_search(query, client, INDEX_NAME, size=10, verbose=verbose)
+    if(selected_episodes):
+        hits = intersection_mlt_search(query, selected_episodes, client, INDEX_NAME, size=10)
+    else: 
+        hits = intersection_search(query, client, INDEX_NAME, size=10, verbose=verbose)
+        
     results = format_hits(hits, query, n, verbose=verbose)
+    if verbose:
+        print("\n Intersection results:")
+        for sample in results[:5]:
+            print(f"epi id: {sample['episode_id']}")
+            print(f"show idx: {sample['show_id']}")
+            print(f"setnence: {sample['chunk']}")
+            print(f"start time: {sample['startTime']}")
+            print(f"end time: {sample['endTime']}\n")
+
         
     return results
 
