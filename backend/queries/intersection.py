@@ -3,10 +3,8 @@ from tqdm import tqdm
 from elasticsearch import Elasticsearch 
 from config import get_es
 
-
 INDEX_NAME = "podcast_transcripts"
 
-# TODO: Match partial words
 def highlight_words(text, phrase):
     words = phrase.strip().split()
     for word in words:
@@ -29,7 +27,6 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
                                 "chunks.sentence": {
                                     "query": query,
                                     "operator": "and",  # all terms must be present
-                                    # "fuzziness": 1  
                                 }
                             }
                         }
@@ -48,7 +45,6 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
         hit['_source']['query'] = query_term
     
     # TODO: Put this in a separate function
-    # TODO: get suggested queries
     if len(hits) < size:
                 suggest_query = {
                     "suggest": {
@@ -93,10 +89,7 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
                                 break
                 except (KeyError, IndexError):
                     pass
-
-    if verbose:
-        print(f"Total hits: {response['hits']['total']['value']}")
-        print(f"Number of hits returned: {len(hits)}")
+                
     return hits
 
 
@@ -132,10 +125,6 @@ def intersection_mlt_search(query_term, relevant_chunks, client, index_name, siz
         
     response = client.search(index=index_name, body=query_body)
     hits = response['hits']['hits']
-
-    if verbose:
-        print(f"Total hits: {response['hits']['total']['value']}")
-        print(f"Number of hits returned: {len(hits)}")
     return hits
 
 
@@ -152,8 +141,7 @@ def get_intersection_chunk_indices(hit, query_term, verbose=False) -> list[int]:
                     break
             if flag:
                 chunk_indices.append(i)
-    if verbose:
-        print(f'indices of valid chunks: {len(chunk_indices)}',  chunk_indices)
+                
     return chunk_indices
 
 
@@ -178,8 +166,8 @@ def get_n_30s_chunks(chunks, idx, n=3) -> dict:
             break
     selected_chunks = [chunks[i] for i in selected_indices]
     return {
-        'startTime': selected_chunks[0]['startTime'],
-        'endTime': selected_chunks[-1]['endTime'],
+        'start_time': float(selected_chunks[0]['startTime'][:-1]), 
+        'end_time': float(selected_chunks[-1]['endTime'][:-1]),
         'chunk': ' '.join([chunk['sentence'] for chunk in selected_chunks])
     }
 
@@ -188,10 +176,10 @@ def get_n_30s_chunks(chunks, idx, n=3) -> dict:
 def format_hits(hits, query_term, n=3, verbose=False):
 
     # Formats search results into a list of dicts with keys ['episode_id', 'show_id', 'startTime', 'endTime', 'sentence', 'query']. 'sentence' contains the concatenated exact n 30-second chunks with the target (matched) chunk centered
-
     results = []
     for hit in tqdm(hits, disable=not verbose):
-        valid_chunk_indices = get_intersection_chunk_indices(hit, hit["_source"]["query"], verbose=verbose)
+        hit_query_term = hit["_source"].get("query", query_term)
+        valid_chunk_indices = get_intersection_chunk_indices(hit, hit_query_term, verbose=verbose)
         if len(valid_chunk_indices) == 0:
             continue
         valid_chunk_indices = [valid_chunk_indices[0]]
@@ -199,8 +187,8 @@ def format_hits(hits, query_term, n=3, verbose=False):
             result = get_n_30s_chunks(hit['_source']['chunks'], idx, n=n)
             result['episode_id'] = hit['_source']['episode_id']
             result['show_id'] = hit['_source']['show_id']
-            result['query'] = hit['_source']['query']
-            result['chunk'] = highlight_words(result['chunk'], query_term)
+            result['query'] = hit_query_term
+            result['chunk'] = highlight_words(result['chunk'], hit_query_term)
             results.append(result)
 
     return results
@@ -216,26 +204,12 @@ def intersection_query(query, chunck_size, verbose=True, selected_episodes=None)
         hits = intersection_search(query, client, INDEX_NAME, size=10, verbose=verbose)
         
     results = format_hits(hits, query, n, verbose=verbose)
-    if verbose:
-        print("\n Intersection results:")
-        for sample in results[:5]:
-            print(f"epi id: {sample['episode_id']}")
-            print(f"show idx: {sample['show_id']}")
-            print(f"setnence: {sample['chunk']}")
-            print(f"start time: {sample['startTime']}")
-            print(f"end time: {sample['endTime']}\n")
-
-        
     return results
 
 
 def main():
     query_term = 'ddog cat'
     verbose = False
-    
-    print(f"Query: '{query_term}'")
-    
-    #results = intersection_query(query_term, chunck_size=120)
     
     hits = intersection_search(query_term, client, INDEX_NAME, size=10, verbose=verbose)
     
@@ -247,7 +221,6 @@ def main():
     if results:
         print("\n example result:")
         for sample in results[:5]:
-            # sample = results[0]
             print(f"epi id: {sample['episode_id']}")
             print(f"show idx: {sample['show_id']}")
             print(f"For query: {sample['query']}")
