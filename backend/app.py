@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from config import get_es
 from flask_cors import CORS
-from queries.intersection import intersection_query, intersection_search
+from queries.intersection import intersection_query
 from queries.metadata import metadata
 from queries.phrase import phrase_query
 from queries.filter import search_episodes
@@ -43,7 +43,7 @@ def querySelector(params):
 
 def handleFilter(params):
   
-    if params.get("selectedEpisodes"):
+    """ if params.get("selectedEpisodes"):
         print("Performing 'More Like This' query for selected episodes:", params["selectedEpisodes"])
         #more_like_this_results = more_like_this_query(params["selectedEpisodes"])
         more_like_this_results = {}
@@ -55,7 +55,7 @@ def handleFilter(params):
             }
             for meta in more_like_this_results
         ]
-        return joined_results
+        return joined_results """
   
   
     if (params["filter"] == "general"):
@@ -93,9 +93,17 @@ def handleFilter(params):
 def handleType(params):
     match params['type']:
         case "Intersection":
-            return intersection_query(params["q"], params["time"])
+            return intersection_query(
+                params["q"], 
+                params["time"], 
+                selected_episodes=params["selectedEpisodes"]
+            )
         case "Phrase":
-            return phrase_query(phrase=params["q"], chunk_size=params['time'])
+            return phrase_query(
+                phrase=params["q"], 
+                chunk_size=params['time'], 
+                selected_episodes=params["selectedEpisodes"]
+            )
         case "Ranking":
             return []
         case _:

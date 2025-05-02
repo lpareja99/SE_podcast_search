@@ -33,13 +33,14 @@ const Search = () => {
     const [isLoading, setIsLoading] = useState(false);
     const audioRef = useRef(null);
     const [isAudioVisible, setIsAudioVisible] = useState(false);
-    
+    const [uniqueQueryTypes, setUniqueQueryTypes] = useState([]);
+
 
     useEffect(() => {
         setIsAudioVisible(false);
         if (audioRef.current && selectedShow?.metadata?.audio) {
-            const startTime = parseFloat(selectedShow.transcript.start_time); // Convert to a number
-            if (!isNaN(startTime)) { // Ensure the value is a valid number
+            const startTime = parseFloat(selectedShow.transcript.start_time);
+            if (!isNaN(startTime)) {
                 audioRef.current.currentTime = startTime;
             } else {
                 console.warn("Invalid start_time value:", selectedShow.transcript.start_time);
@@ -121,6 +122,15 @@ const Search = () => {
             }));
 
             setResults(resultsWithIds);
+
+            // Extract and save unique query types
+            const queries = resultsWithIds
+                .map((result) => result.transcript?.query)
+                .filter((query) => query !== undefined && query !== null);
+            const uniqueQueries = [...new Set(queries)];
+            console.log("Unique Query Types:", uniqueQueries);
+            setUniqueQueryTypes(uniqueQueries); // Save to state
+            console.log("Unique Query Types:", uniqueQueryTypes);
         } catch (error) {
             console.error("Error fetching search results:", error);
             setResults([]);
@@ -291,9 +301,15 @@ const Search = () => {
                 <div className="row">
                     {results.length > 0 ? (
                         <>
-                            <div className="col-md-12 mb-4">
+                            <div className="d-flex flex-row justify-content-between border-bottom mb-4">
                                 <h2 className="results-heading">Search Results</h2>
+                                {uniqueQueryTypes.length > 0 && (
+                                    <p className="text-muted">
+                                        Showing results for: {uniqueQueryTypes.join(", ")}
+                                    </p>
+                                )}
                             </div>
+
                             
                             <div className="row-12 mb-4 d-flex gap-3">
                                 {/* Grid View of Results (Spotify-like) */}
