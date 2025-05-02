@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from elasticsearch import Elasticsearch 
+
 from config import get_es
 
 
@@ -40,7 +40,7 @@ def get_intersection_chunk_indices(hit, query_term, verbose=False) -> list[int]:
         for i, chunk in enumerate(source['chunks']):
             flag = True
             for term in query_term.lower().split():
-                if term not in chunk['sentence'].lower():
+                if term not in chunk['sentence'].lower().split():
                     flag = False
                     break
             if flag:
