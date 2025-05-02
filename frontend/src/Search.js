@@ -91,22 +91,40 @@ const Search = () => {
             );
         });
     };
+
+
+    const handleCheckboxChange = (episode) => {
+        setCheckedEpisodes((prev) => {
+            const isChecked = prev.some((ep) => ep.metadata?.episode_id === episode.metadata?.episode_id);
+            return isChecked
+                ? prev.filter((ep) => ep.metadata?.episode_id !== episode.metadata?.episode_id)
+                : [...prev, episode];
+        });
+    };
     
 
     const handleSearch = async () => {
         setIsLoading(true);
         setSelectedShow(null);
-        const params = new URLSearchParams({
+        const params = {
             q: query,
             filter: selectedTag,
             type: searchType,
             ranking: searchType === "Ranking" ? rankingType : undefined,
             time: timeRange.value,
-            selectedEpisodes: checkedEpisodes.join(","),
-        });
-        console.log("Search Parameters:", Object.fromEntries(params.entries()));
+            selectedEpisodes: checkedEpisodes,
+        };
+
+        console.log("Search Parameters:", params);
+        
         try {
-            const response = await fetch(`${API_BASE_URL}/search?${params}`);
+            const response = await fetch(`${API_BASE_URL}/search?`, {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(params),
+            });
             const data = await response.json();
             console.log(data);
 
@@ -137,13 +155,6 @@ const Search = () => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleCheckboxChange = (episodeId) => {
-        setCheckedEpisodes((prev) => {
-            const isChecked = prev.includes(episodeId);
-            return isChecked ? prev.filter((id) => id !== episodeId) : [...prev, episodeId];
-        });
     };
     
     return (
@@ -340,10 +351,10 @@ const Search = () => {
                                                                 <input
                                                                     type="checkbox"
                                                                     className="form-check-input"
-                                                                    checked={checkedEpisodes.includes(result.metadata?.episode_id)}
+                                                                    checked={checkedEpisodes.some((ep) => ep.metadata?.episode_id === result.metadata?.episode_id)}
                                                                     onChange={(e) => {
                                                                         e.stopPropagation();
-                                                                        handleCheckboxChange(result.metadata?.episode_id);
+                                                                        handleCheckboxChange(result);
                                                                     }}
                                                                 />
                                                             </div>

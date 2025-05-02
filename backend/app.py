@@ -1,4 +1,5 @@
-from flask import Flask, request
+import pprint
+from flask import Flask, json, jsonify, request
 from config import get_es
 from flask_cors import CORS
 from queries.intersection import intersection_query
@@ -17,46 +18,25 @@ TRANSACRIPTS_INDEX = "podcast_transcripts"
 def home():
     return "Backend is running!"  # Simple response to confirm backend is active
 
-@app.route('/search')
+@app.route('/search', methods=['POST'])
 def search():
-    params = {
-        "q": request.args.get("q", ""),
-        "filter": request.args.get("filter", None),
-        "type": request.args.get("type", None),
-        "ranking": request.args.get("ranking", None),
-        "time": int(request.args.get("time", None)),
-        "selectedEpisodes": request.args.get("selectedEpisodes", "").split(",") if request.args.get("selectedEpisodes") else []
-    }
     
-    result = querySelector(params)
-       
-    return result
-
+    try:
+        params = request.get_json()
+        result = querySelector(params)
+        return result
+    except Exception as e:
+        print(f"Error during search: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 def querySelector(params):
     
     result = handleFilter(params)
-
     return result
 
 
 def handleFilter(params):
-  
-    """ if params.get("selectedEpisodes"):
-        print("Performing 'More Like This' query for selected episodes:", params["selectedEpisodes"])
-        #more_like_this_results = more_like_this_query(params["selectedEpisodes"])
-        more_like_this_results = {}
-        
-        joined_results = [
-            {
-                "transcript": {},
-                "metadata": meta
-            }
-            for meta in more_like_this_results
-        ]
-        return joined_results """
-  
   
     if (params["filter"] == "general"):
             transcript_result = handleType(params)
@@ -76,7 +56,6 @@ def handleFilter(params):
             return joined_results  
     
     else:
-        print("filters: ", params)
         metadata_results = search_episodes(params['q'], params['filter'])
         
         joined_results = [
