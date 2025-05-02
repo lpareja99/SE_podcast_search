@@ -53,7 +53,9 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
                             "term": {
                                 "field": "chunks.sentence",
                                 "suggest_mode": "always",
-                                "min_word_length": 3
+                                "min_word_length": 2,
+                                "max_edits": 2,
+                                "prefix_length": 1
                             }
                         }
                     }
