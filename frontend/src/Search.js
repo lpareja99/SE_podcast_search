@@ -153,6 +153,7 @@ const Search = () => {
             console.error("Error fetching search results:", error);
             setResults([]);
         } finally {
+            setCheckedEpisodes([]);
             setIsLoading(false);
         }
     };
