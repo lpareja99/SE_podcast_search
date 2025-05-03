@@ -6,6 +6,7 @@ from queries.intersection import intersection_query
 from queries.metadata import metadata
 from queries.phrase import phrase_query
 from queries.filter import search_episodes
+from queries.bm25 import bm25_query
 
 app = Flask(__name__)
 CORS(app)
@@ -84,7 +85,11 @@ def handleType(params):
                 selected_episodes=params["selectedEpisodes"]
             )
         case "Ranking":
-            return []
+            return bm25_query(
+                query_term=params["q"], 
+                chunk_size= params["time"], 
+                selected_episodes=params["selectedEpisodes"]
+            )
         case _:
             raise ValueError(f"Unsupported query type: {params['type']}")
 

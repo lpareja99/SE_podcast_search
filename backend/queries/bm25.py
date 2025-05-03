@@ -1,6 +1,7 @@
 from config import get_es
 import re
-import os
+
+INDEX_NAME = "podcast_transcripts"
 
 def strip_highlight_tags(text):
     return re.sub(r"</?em>", "", text or "")
@@ -93,14 +94,18 @@ def bm25_search(query_term, index_name, top_k=1, es=None):
 
 
 
-def bm25_query(query_term, index_name, top_k = 1, es = None, chunk_size = 30, debug = True):
-    response = bm25_search(query_term, index_name, top_k = 10, es = es)
+def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True, selected_episodes = None):
+    client = get_es()
+    response = bm25_search(query_term, index_name, top_k = 10, es = client)
+    #print("Response from search", response)
     results = []
 
     for hit in response["hits"]["hits"]:
         source = hit["_source"]
         highlight_raw = hit.get("highlight", {}).get("chunks.sentence", [None])[0]
         highlight_clean = strip_highlight_tags(highlight_raw)
+        
+        #print("Highlight clean", highlight_clean)
 
         best_chunk = next(
             (chunk for chunk in source.get("chunks", []) 
@@ -108,7 +113,9 @@ def bm25_query(query_term, index_name, top_k = 1, es = None, chunk_size = 30, de
             source.get("chunks", [{}])[0]
         )
 
-        all_chunks_result = get_chunks_by_episode(source["episode_id"], index_name, es=es, debug=True)
+        print("Best chunk", best_chunk)
+        
+        all_chunks_result = get_chunks_by_episode(source["episode_id"], index_name, es=client, debug=True)
         n_chunks_result = add_chunks_together(all_chunks_result, best_chunk.get("sentence"), chunk_size = chunk_size)
 
         results.append({

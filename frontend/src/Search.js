@@ -360,9 +360,12 @@ const Search = () => {
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div className="podcast-info">
-                                                            <h5 className="podcast-title text-truncate">{result.metadata?.show}</h5>
-                                                            <p className="podcast-episode text-truncate">{result.metadata?.title}</p>
+                                                        <div className="podcast-info position-relative">
+                                                            <h5 className="podcast-title text-truncate">{result.metadata?.title}</h5>
+                                                            <p className="podcast-episode text-truncate">{result.metadata?.show}</p>
+                                                            {result.transcript?.score && (
+                                                                <p className="podcast-episode text-right">{result.transcript.score.toFixed(2)}</p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
