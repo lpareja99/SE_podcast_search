@@ -139,7 +139,7 @@ def intersection_search(query_term, client, index_name, size=10):
     return hits
 
 
-def intersection_mlt_search(query_term, relevant_chunks, client, index_name, size=10):
+def mlt_search(query_term, relevant_chunks, client, index_name, size=10):
     like_text = [chunk["transcript"]["chunk"] for chunk in relevant_chunks]
     query_body = {
         "size": size,
@@ -174,7 +174,7 @@ def intersection_query(query, chunk_size, selected_episodes=None):
     client = get_es()
     n = int(chunk_size / 30)
     if selected_episodes:
-        hits = intersection_mlt_search(query, selected_episodes, client, INDEX_NAME, size=10)
+        hits = mlt_search(query, selected_episodes, client, INDEX_NAME, size=10)
     else:
         hits = intersection_search(query, client, INDEX_NAME, size=10)
     return format_hits(hits, query, n)
