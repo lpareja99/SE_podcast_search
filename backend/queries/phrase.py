@@ -131,20 +131,21 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
         score = phrase.lower() in chunk["sentence"].lower()
         if score:
             best_chunk = chunk
-            next_chunk = chunk
-            #add chunk to best_chunk so chunk duration is chunk_size
-            endTime = get_time_from_string(best_chunk["endTime"])
+            next_chunk = doc["chunks"][doc["chunks"].index(chunk) + 1]
+            
+            endTime = get_time_from_string(next_chunk["endTime"])
             startTime = get_time_from_string(best_chunk["startTime"])
-            while endTime - startTime < chunk_size:
+            tolerance  =  15 #10% of chunk_size
+            while endTime - startTime < chunk_size + tolerance:
                 #if next_chunk is the last chunk, break
                 if doc["chunks"].index(next_chunk) == len(doc["chunks"]) - 1:
                     break
                 #add next chunk to best_chunk
-                
-                next_chunk = doc["chunks"][doc["chunks"].index(next_chunk) + 1]
                 best_chunk["sentence"] += " " + next_chunk["sentence"]
                 best_chunk["endTime"] = next_chunk["endTime"]
-                endTime = get_time_from_string(best_chunk["endTime"])
+
+                next_chunk = doc["chunks"][doc["chunks"].index(next_chunk) + 1]
+                endTime = get_time_from_string(next_chunk["endTime"])
 
             break #we retrieve the first chunk that matches
 
@@ -202,7 +203,7 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
             "_source": ["show_id", "episode_id", "chunks"],
             "query": {
                 "more_like_this": {
-                    "fields": ["chunks.sentence"],
+                    "fields": ["chunks.sentence"],  
                     "like": like_text,
                     "min_term_freq": 1,
                     "max_query_terms": 12
@@ -234,6 +235,7 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
                 print(f"Chunk: {best_chunk['chunk']}")
                 print(f"Time: {best_chunk['start_time']} → {best_chunk['end_time']}")
                 print(f"Query: {best_chunk['query']} (original was {phrase})")
+                print(f"Time: {float(best_chunk['start_time'][:-1]) - float(best_chunk['end_time'][:-1])}")
                 print("|----------------------------------|\n\n")
         else:
             print("No chunk found for.")
@@ -243,5 +245,5 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
 if __name__ == "__main__":  
     es = get_es()
     q = "climte chnge"
-    results = phrase_query(q, index_name=INDEX_NAME, top_k = 10, es = es, chunk_size = 30, debug = True)
+    results = phrase_query(q, index_name=INDEX_NAME, top_k = 10, es = es, chunk_size = 60, debug = True)
  
