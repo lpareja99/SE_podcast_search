@@ -12,7 +12,7 @@ def highlight_words(text, phrase):
         text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
     return text
 
-def get_intersection_chunk_indices(hit, query_term, verbose=False) -> list[int]:
+def get_intersection_chunk_indices(hit, query_term) -> list[int]:
     source = hit['_source']
     chunk_indices = []
     if 'chunks' in source:
@@ -46,11 +46,11 @@ def get_n_30s_chunks(chunks, idx, n=3) -> dict:
     }
         
 
-def format_hits(hits, query_term, n=3, verbose=False):
+def format_hits(hits, query_term, n=3):
     results = []
-    for hit in tqdm(hits, disable=not verbose):
+    for hit in tqdm(hits, disable=not False):
         hit_query_term = hit["_source"].get("query", query_term)
-        valid_chunk_indices = get_intersection_chunk_indices(hit, hit_query_term, verbose=verbose)
+        valid_chunk_indices = get_intersection_chunk_indices(hit, hit_query_term)
         if not valid_chunk_indices:
             continue
         for idx in [valid_chunk_indices[0]]:
@@ -126,7 +126,7 @@ def handle_suggestions(query_term, client, index_name, hits, seen, size):
     
     
 
-def intersection_search(query_term, client, index_name, size=10, verbose=False):
+def intersection_search(query_term, client, index_name, size=10):
     response = run_query(query_term, client, index_name, size)
     hits = response['hits']['hits']
     seen = {(hit['_source'].get('show_id'), hit['_source'].get('episode_id')) for hit in hits}
@@ -139,7 +139,7 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False):
     return hits
 
 
-def intersection_mlt_search(query_term, relevant_chunks, client, index_name, size=10, verbose=False):
+def intersection_mlt_search(query_term, relevant_chunks, client, index_name, size=10):
     like_text = [chunk["transcript"]["chunk"] for chunk in relevant_chunks]
     query_body = {
         "size": size,
@@ -170,23 +170,22 @@ def intersection_mlt_search(query_term, relevant_chunks, client, index_name, siz
 
 
 # Main Query Function
-def intersection_query(query, chunk_size, verbose=True, selected_episodes=None):
+def intersection_query(query, chunk_size, selected_episodes=None):
     client = get_es()
     n = int(chunk_size / 30)
     if selected_episodes:
         hits = intersection_mlt_search(query, selected_episodes, client, INDEX_NAME, size=10)
     else:
-        hits = intersection_search(query, client, INDEX_NAME, size=10, verbose=verbose)
-    return format_hits(hits, query, n, verbose=verbose)
+        hits = intersection_search(query, client, INDEX_NAME, size=10)
+    return format_hits(hits, query, n)
 
 
 # Main Function
 def main():
     query_term = 'ddog cat'
-    verbose = False
     client = get_es()
-    hits = intersection_search(query_term, client, INDEX_NAME, size=10, verbose=verbose)
-    results = format_hits(hits, query_term, n=3, verbose=verbose)
+    hits = intersection_search(query_term, client, INDEX_NAME, size=10)
+    results = format_hits(hits, query_term, n=3)
     print(f"found {len(results)} matching chunks")
     if results:
         print("\n example result:")
