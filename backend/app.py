@@ -16,7 +16,7 @@ TRANSACRIPTS_INDEX = "podcast_transcripts"
 
 @app.route('/')
 def home():
-    return "Backend is running!"  # Simple response to confirm backend is active
+    return "Backend is running!" 
 
 @app.route('/search', methods=['POST'])
 def search():

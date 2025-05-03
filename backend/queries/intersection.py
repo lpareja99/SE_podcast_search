@@ -61,9 +61,8 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
                     }
                 }
                 suggest_response = client.search(index=index_name, body=suggest_query)
-                print(suggest_response)
+                
                 try:
-      
                     suggestions = suggest_response["suggest"]["suggestion"]
                     corrected_words = []
 
@@ -76,7 +75,7 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
                             corrected_words.append(entry["text"])
 
                     suggested_phrase = " ".join(corrected_words)
-                    print(f"Suggested query {suggested_phrase}")
+
                     if suggested_phrase:
                         new_response = run_query(suggested_phrase)
 
@@ -97,8 +96,7 @@ def intersection_search(query_term, client, index_name, size=10, verbose=False, 
 
 def intersection_mlt_search(query_term, relevant_chunks, client, index_name, size=10, verbose=False): 
     # expect relevant_chunks data struct and type as the one of format_hits in intersection_search.py
-
-    like_text = [chunk["sentence"] for chunk in relevant_chunks]
+    like_text = [chunk["transcript"]["chunk"] for chunk in relevant_chunks]
 
     query_body = {
         "size": size,
@@ -131,7 +129,6 @@ def intersection_mlt_search(query_term, relevant_chunks, client, index_name, siz
 
 
 def get_intersection_chunk_indices(hit, query_term, verbose=False) -> list[int]:
-
     source = hit['_source']
     chunk_indices = []
     if 'chunks' in source:
