@@ -3,10 +3,13 @@ import re
 
 INDEX_NAME = "podcast_transcripts"
 
+
 def highlight_words(text, phrase):
-    pattern = re.compile(rf'({re.escape(phrase)})', flags=re.IGNORECASE)
-    text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
-    return text
+    """
+    Highlights the full phrase (not individual words) in the text (case-insensitive).
+    """
+    pattern = re.compile(re.escape(phrase), re.IGNORECASE)
+    return pattern.sub(r"<mark><strong><em>\g<0></em></strong></mark>", text)
 
 
 def get_suggested_phrase(phrase, es, index_name):
@@ -28,7 +31,6 @@ def get_suggested_phrase(phrase, es, index_name):
     try:
         suggest_response = es.search(index=index_name, body=suggest_query)
         suggestions = suggest_response["suggest"]["word_suggest"]
-        print(suggestions)
         corrected_words = []
 
         for entry in suggestions:
@@ -74,13 +76,9 @@ def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
             "query": phrase
         })
 
-    print(len(results))
     if len(results) < top_k:
-        print("getting more results since there is not enough")
         suggested_phrase = get_suggested_phrase(phrase, es, index_name)
-        print(suggested_phrase)
         if suggested_phrase:
-            print(f"Suggested query: {suggested_phrase}")
             new_response = do_query(suggested_phrase)
 
             for hit in new_response["hits"]["hits"]:
@@ -166,6 +164,43 @@ def get_time_from_string(str):
     return float(str[:-1])
 
 
+def mlt_search(phrase, selected_chunks, client, index_name, size):
+        like_text = [chunk["transcript"]["chunk"] for chunk in selected_chunks if "transcript" in chunk and "chunk" in chunk["transcript"]]
+        if not like_text:
+            return []
+
+        query = {
+            "size": size,
+            "_source": ["show_id", "episode_id", "chunks"],
+            "query": {
+                "bool": {
+                    "should": [
+                        {
+                            "more_like_this": {
+                                "fields": ["chunks.sentence"],
+                                "like": like_text
+                            }
+                        },
+                        {
+                            "match_phrase": {
+                                "chunks.sentence": {
+                                    "query": phrase,
+                                    "boost": 2.0
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        response = client.search(index=index_name, body=query)
+        hits = response.get("hits", {}).get("hits", [])
+        for hit in hits:
+            hit["_source"]["query"] = phrase
+        return hits
+
+
 def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = False, selected_episodes = None):
     """
     Search for a phrase in the transcript chunks of podcast episodes stored in Elasticsearch.
@@ -196,37 +231,31 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
         
     # Perform the more_like_this based on whether `selected_episodes` is provided
     if selected_episodes:
-        # Perform 'more_like_this' query for selected episodes
-        like_text = [{"_index": index_name, "_id": episode_id} for episode_id in selected_episodes]
-        query = {
-            "size": top_k,
-            "_source": ["show_id", "episode_id", "chunks"],
-            "query": {
-                "more_like_this": {
-                    "fields": ["chunks.sentence"],  
-                    "like": like_text,
-                    "min_term_freq": 1,
-                    "max_query_terms": 12
-                }
-            }
-        }
-        response = es.search(index=index_name, body=query)
-        #print("selected_episodes: ", response)
+        
+        hits = mlt_search(phrase, selected_episodes, es, index_name, top_k)
+        
+        if len(hits) < top_k:
+            corrected = get_suggested_phrase(phrase, es, index_name)
+            if corrected and corrected.lower() != phrase.lower():
+                hits = mlt_search(corrected, selected_episodes, es, index_name, top_k)
+                phrase = corrected
+        
+        response = hits
+            
+            
     else:
         # Perform normal phrase search
         response = phrase_search(phrase, index_name=index_name, top_k=top_k, es=es)
-        
-        #print("phrase_search: ", response)
-        
     
-
-    #documents = phrase_search(phrase, index_name=INDEX_NAME ,top_k= top_k, es=es)
     results = []
     for doc in response:
+        
         if debug:
             print(f"Show ID: {doc['show_id']}, Episode ID: {doc['episode_id']}")
             print("\n🎯 Best Chunk in Episode:")
-        best_chunk = get_first_chunk(doc['show_id'], doc['episode_id'], doc['query'], index_name, es=es, chunk_size=chunk_size)
+            
+        source = doc["_source"] if "_source" in doc else doc
+        best_chunk = get_first_chunk(source['show_id'], source['episode_id'], source['query'], index_name, es=es, chunk_size=chunk_size)
         if best_chunk:
             results.append(best_chunk)
             if debug:

@@ -5,68 +5,21 @@ from config import get_es
 INDEX_NAME = "podcast_transcripts"
 
 def highlight_words(text, phrase):
+    """
+    Highlights all words from the given phrase in the text (case-insensitive),
+    """
     words = phrase.strip().split()
     for word in words:
-        # Match whole word, case-insensitive, word boundaries
         pattern = re.compile(rf'({re.escape(word)})', flags=re.IGNORECASE)
         text = pattern.sub(r'<mark><strong><em>\1</em></strong></mark>', text)
     return text
 
-def get_intersection_chunk_indices(hit, query_term) -> list[int]:
-    source = hit['_source']
-    chunk_indices = []
-    if 'chunks' in source:
-        for i, chunk in enumerate(source['chunks']):
-            if all(term in chunk['sentence'].lower() for term in query_term.lower().split()):
-                chunk_indices.append(i)
-    return chunk_indices
-
-
-def get_n_30s_chunks(chunks, idx, n=3) -> dict:
-    left_idx, right_idx = idx - 1, idx + 1
-    count, selected_indices = 1, [idx]
-
-    while count < n:
-        if left_idx >= 0:
-            selected_indices.insert(0, left_idx)
-            left_idx -= 1
-            count += 1
-        if count < n and right_idx < len(chunks):
-            selected_indices.append(right_idx)
-            right_idx += 1
-            count += 1
-        if left_idx < 0 and right_idx >= len(chunks):
-            break
-
-    selected_chunks = [chunks[i] for i in selected_indices]
-    return {
-        'start_time': float(selected_chunks[0]['startTime'][:-1]),
-        'end_time': float(selected_chunks[-1]['endTime'][:-1]),
-        'chunk': ' '.join([chunk['sentence'] for chunk in selected_chunks])
-    }
-        
-
-def format_hits(hits, query_term, n=3):
-    results = []
-    for hit in tqdm(hits, disable=not False):
-        hit_query_term = hit["_source"].get("query", query_term)
-        valid_chunk_indices = get_intersection_chunk_indices(hit, hit_query_term)
-        if not valid_chunk_indices:
-            continue
-        for idx in [valid_chunk_indices[0]]:
-            result = get_n_30s_chunks(hit['_source']['chunks'], idx, n=n)
-            result.update({
-                'episode_id': hit['_source']['episode_id'],
-                'show_id': hit['_source']['show_id'],
-                'query': hit_query_term,
-                'chunk': highlight_words(result['chunk'], hit_query_term)
-            })
-            results.append(result)
-    return results
-
 
 # Query Functions
-def run_query(query, client, index_name, size):
+def run_query(query_term, client, index_name, size=10):
+    """
+    Executes a match query with 'AND' operator over 'chunks.sentence' to retrieve documents that contain all query terms.
+    """
     query_body = {
         "size": size,
         "query": {
@@ -75,8 +28,8 @@ def run_query(query, client, index_name, size):
                     {
                         "match": {
                             "chunks.sentence": {
-                                "query": query,
-                                "operator": "and",
+                                "query": query_term,
+                                "operator": "and"
                             }
                         }
                     }
@@ -84,10 +37,17 @@ def run_query(query, client, index_name, size):
             }
         }
     }
-    return client.search(index=index_name, body=query_body)
+    response = client.search(index=index_name, body=query_body)
+    hits = response.get("hits", {}).get("hits", [])
+    for hit in hits:
+        hit["_source"]["query"] = query_term
+    return hits
 
 
-def handle_suggestions(query_term, client, index_name, hits, seen, size):
+def handle_suggestions(query_term, client, index_name, hits, seen, size=10):
+    """
+    If not enough results were found, runs a suggest query on 'chunks.sentence'. Re-executes the search with the corrected phrase and appends new results.
+    """
     suggest_query = {
         "suggest": {
             "suggestion": {
@@ -102,45 +62,72 @@ def handle_suggestions(query_term, client, index_name, hits, seen, size):
             }
         }
     }
-    suggest_response = client.search(index=index_name, body=suggest_query)
+
     try:
-        suggestions = suggest_response["suggest"]["suggestion"]
+        response = client.search(index=index_name, body=suggest_query)
+        suggestions = response["suggest"]["suggestion"]
         corrected_words = [
             entry["options"][0]["text"] if entry["options"] else entry["text"]
             for entry in suggestions
         ]
         suggested_phrase = " ".join(corrected_words)
-        if suggested_phrase:
-            new_response = run_query(suggested_phrase, client, index_name, size)
-            for hit in new_response["hits"]["hits"]:
-                source = hit["_source"]
-                doc_id = (source["show_id"], source["episode_id"])
+
+        if suggested_phrase and suggested_phrase.lower() != query_term.lower():
+            new_hits = run_query(suggested_phrase, client, index_name, size)
+            for hit in new_hits:
+                doc_id = (hit["_source"]["show_id"], hit["_source"]["episode_id"])
                 if doc_id not in seen:
-                    hit['_source']['query'] = suggested_phrase
+                    hit["_source"]["query"] = suggested_phrase
                     hits.append(hit)
                     seen.add(doc_id)
                 if len(hits) >= size:
                     break
-    except (KeyError, IndexError):
+
+    except Exception:
         pass
     
     
+def get_suggested_query(query_term, client, index_name):
+    """
+    Runs a suggest query and returns the corrected phrase, if different.
+    """
+    suggest_query = {
+        "suggest": {
+            "suggestion": {
+                "text": query_term,
+                "term": {
+                    "field": "chunks.sentence",
+                    "suggest_mode": "always",
+                    "min_word_length": 2,
+                    "max_edits": 2,
+                    "prefix_length": 1
+                }
+            }
+        }
+    }
 
-def intersection_search(query_term, client, index_name, size=10):
-    response = run_query(query_term, client, index_name, size)
-    hits = response['hits']['hits']
-    seen = {(hit['_source'].get('show_id'), hit['_source'].get('episode_id')) for hit in hits}
-    for hit in hits:
-        hit['_source']['query'] = query_term
+    try:
+        response = client.search(index=index_name, body=suggest_query)
+        suggestions = response["suggest"]["suggestion"]
+        print(suggestions)
+        corrected = [
+            entry["options"][0]["text"] if entry["options"] else entry["text"]
+            for entry in suggestions
+        ]
+        return " ".join(corrected)
+    except Exception:
+        return None
 
-    if len(hits) < size:
-        handle_suggestions(query_term, client, index_name, hits, seen, size)
 
-    return hits
+    
+def mlt_search(query_term, selected_chunks, client, index_name, size=10):
+    """
+    Runs a 'more_like_this' query using chunks marked as relevant, combined with a boosted match query to reinforce the original search intent.
+    """
+    like_text = [chunk["transcript"]["chunk"] for chunk in selected_chunks if "transcript" in chunk and "chunk" in chunk["transcript"]]
+    if not like_text:
+        return []
 
-
-def mlt_search(query_term, relevant_chunks, client, index_name, size=10):
-    like_text = [chunk["transcript"]["chunk"] for chunk in relevant_chunks]
     query_body = {
         "size": size,
         "query": {
@@ -149,7 +136,7 @@ def mlt_search(query_term, relevant_chunks, client, index_name, size=10):
                     {
                         "more_like_this": {
                             "fields": ["chunks.sentence"],
-                            "like": like_text,
+                            "like": like_text
                         }
                     },
                     {
@@ -166,25 +153,113 @@ def mlt_search(query_term, relevant_chunks, client, index_name, size=10):
         }
     }
     response = client.search(index=index_name, body=query_body)
-    return response['hits']['hits']
+    hits = response.get("hits", {}).get("hits", [])
+    for hit in hits:
+        hit["_source"]["query"] = query_term
+    return hits
+    
+
+def get_intersection_chunk_indices(hit, query_term) -> list[int]:
+    """
+    Returns indices of chunks that contain all query terms.
+    """
+    source = hit['_source']
+    chunk_indices = []
+    if 'chunks' in source:
+        for i, chunk in enumerate(source['chunks']):
+            if all(term in chunk['sentence'].lower() for term in query_term.lower().split()):
+                chunk_indices.append(i)
+    return chunk_indices
+
+
+def get_n_30s_chunks(chunks, idx, n=3):
+    """
+    Given a chunk index, expands to n ~30s chunks by adding neighbors before/after to form a longer contiguous segment.
+    """
+    left_idx, right_idx = idx - 1, idx + 1
+    count = 1
+    selected_indices = [idx]
+
+    while count < n:
+        if left_idx >= 0:
+            selected_indices.insert(0, left_idx)
+            left_idx -= 1
+            count += 1
+        if count < n and right_idx < len(chunks):
+            selected_indices.append(right_idx)
+            right_idx += 1
+            count += 1
+        if left_idx < 0 and right_idx >= len(chunks):
+            break
+        
+    selected_chunks = [chunks[i] for i in selected_indices]
+    return {
+        'start_time': float(selected_chunks[0]['startTime'][:-1]),
+        'end_time': float(selected_chunks[-1]['endTime'][:-1]),
+        'chunk': ' '.join(chunk['sentence'] for chunk in selected_chunks)
+    }
+
+
+def format_hits(hits, query_term, n=3):
+    """
+    Given a list of documents (hits), selects the best chunk from each one that contains all query terms and returns:
+    - episode_id, show_id, query
+    - chunk (highlighted), start_time, end_time
+    """
+    results = []
+    for hit in tqdm(hits, disable=False):
+        q_term = hit["_source"].get("query", query_term)
+        chunk_indices = get_intersection_chunk_indices(hit, q_term)
+        if not chunk_indices:
+            continue
+        idx = chunk_indices[0]
+        chunk_data = get_n_30s_chunks(hit["_source"]["chunks"], idx, n=n)
+        chunk_data.update({
+            "episode_id": hit["_source"]["episode_id"],
+            "show_id": hit["_source"]["show_id"],
+            "query": q_term,
+            "chunk": highlight_words(chunk_data["chunk"], q_term)
+        })
+        results.append(chunk_data)
+    return results
+
 
 
 # Main Query Function
-def intersection_query(query, chunk_size, selected_episodes=None):
+def intersection_query(query_term, chunk_size, selected_episodes=None):
+    """
+    Main fuction. Runs either standard or MLT-based intersection search, applies suggestions if needed, and returns formatted results.
+    """
     client = get_es()
+    size = 10
     n = int(chunk_size / 30)
+
     if selected_episodes:
-        hits = mlt_search(query, selected_episodes, client, INDEX_NAME, size=10)
+        print("executing MLT search")
+        hits = mlt_search(query_term, selected_episodes, client, INDEX_NAME, size)
+        print("MLT hits", hits)
+        print(len(hits))
+        if len(hits) < size:
+            corrected = get_suggested_query(query_term, client, INDEX_NAME)
+            if corrected and corrected.lower() != query_term.lower():
+                hits = mlt_search(corrected, selected_episodes, client, INDEX_NAME, size)
+                query_term = corrected
     else:
-        hits = intersection_search(query, client, INDEX_NAME, size=10)
-    return format_hits(hits, query, n)
+        hits = run_query(query_term, client, INDEX_NAME, size)
+        if len(hits) < size:
+            corrected = get_suggested_query(query_term, client, INDEX_NAME)
+            if corrected and corrected.lower() != query_term.lower():
+                hits = run_query(corrected, client, INDEX_NAME, size)
+                query_term = corrected
+
+    return format_hits(hits, query_term, n)
 
 
-# Main Function
+# Main Function - for testing the script
 def main():
     query_term = 'ddog cat'
     client = get_es()
-    hits = intersection_search(query_term, client, INDEX_NAME, size=10)
+    hits = intersection_query(query_term, client, INDEX_NAME, size=10)
     results = format_hits(hits, query_term, n=3)
     print(f"found {len(results)} matching chunks")
     if results:
