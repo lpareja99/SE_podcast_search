@@ -17,7 +17,7 @@ const FILTER_MAPPING = [
     {label: "General", value: 'general'},
     {label: "Show", value: 'show_name'},
     {label: "Author", value: 'publisher'},
-    {label: "Episode", value: 'episode_title'},
+    {label: "Episode", value: 'episode_name'},
 ];
 
 const Search = () => {
