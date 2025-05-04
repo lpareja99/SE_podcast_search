@@ -93,27 +93,68 @@ def bm25_search(query_term, index_name, top_k=1, es=None):
     return response
 
 
+def mlt_search(query_term, selected_chunks, client, index_name, size=10):
+    """
+    Runs a 'more_like_this' query using chunks marked as relevant, combined with a boosted match query to reinforce the original search intent.
+    """
+    like_text = [chunk["transcript"]["chunk"] for chunk in selected_chunks if "transcript" in chunk and "chunk" in chunk["transcript"]]
+    if not like_text:
+        return []
+
+    query_body = {
+        "size": size,
+        "query": {
+            "bool": {
+                "should": [
+                    {
+                        "more_like_this": {
+                            "fields": ["chunks.sentence"],
+                            "like": like_text
+                        }
+                    },
+                    {
+                        "match": {
+                            "chunks.sentence": {
+                                "query": query_term,
+                                "operator": "and",
+                                "boost": 2.0
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    response = client.search(index=index_name, body=query_body)
+    hits = response.get("hits", {}).get("hits", [])
+    for hit in hits:
+        hit["_source"]["query"] = query_term
+    return hits
+
 
 def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True, selected_episodes = None):
-    client = get_es()
-    response = bm25_search(query_term, index_name, top_k = 10, es = client)
-    #print("Response from search", response)
+    client = es or get_es()
     results = []
+    
+    if selected_episodes:
+        hits = mlt_search(query_term, selected_episodes, client, index_name, top_k)
+        
+    else:
+    
+        response = bm25_search(query_term, index_name, top_k = 10, es = client)
+        hits = response.get("hits", {}).get("hits", [])
 
-    for hit in response["hits"]["hits"]:
+
+    for hit in hits:
         source = hit["_source"]
         highlight_raw = hit.get("highlight", {}).get("chunks.sentence", [None])[0]
         highlight_clean = strip_highlight_tags(highlight_raw)
-        
-        #print("Highlight clean", highlight_clean)
 
         best_chunk = next(
             (chunk for chunk in source.get("chunks", []) 
              if highlight_clean and highlight_clean.lower() in chunk["sentence"].lower()),
             source.get("chunks", [{}])[0]
         )
-
-        print("Best chunk", best_chunk)
         
         all_chunks_result = get_chunks_by_episode(source["episode_id"], index_name, es=client, debug=True)
         n_chunks_result = add_chunks_together(all_chunks_result, best_chunk.get("sentence"), chunk_size = chunk_size)
@@ -124,10 +165,7 @@ def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_s
             "score": hit["_score"],
             "start_time" : n_chunks_result.get("start_time"),
             "end_time" : n_chunks_result.get("end_time"),
-            "chunk": highlight_words(n_chunks_result.get("chunk"),query_term)
-            #"text_highlight" : highlighted_chunk_text, highlight_words(n_chunks_result.get("chunk"),query_term) ,
-            #"highlight": highlight_raw
-            
+            "chunk": highlight_words(n_chunks_result.get("chunk"),query_term)            
         })
 
     return results
@@ -136,8 +174,6 @@ def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_s
 def add_chunks_together(chunks, matched_chunk, chunk_size=30):
    
     chunks_to_merge = chunk_size // 30
-    
-    
     matched_idx = next((i for i, chunk in enumerate(chunks) 
                         if chunk.get("sentence") == matched_chunk), None)
     
@@ -149,7 +185,6 @@ def add_chunks_together(chunks, matched_chunk, chunk_size=30):
     count = 1 
     selected_indices = [matched_idx]
 
-   
     while count < chunks_to_merge:
         
         if left_idx >= 0:
@@ -157,16 +192,13 @@ def add_chunks_together(chunks, matched_chunk, chunk_size=30):
             left_idx -= 1
             count += 1
         
-        
         if count < chunks_to_merge and right_idx < len(chunks):
             selected_indices.append(right_idx)
             right_idx += 1
             count += 1
 
-        
         if left_idx < 0 and right_idx >= len(chunks):
             break
-    
     
     selected_chunks = [chunks[i] for i in selected_indices]
     
