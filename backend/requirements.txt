@@ -4,3 +4,6 @@ elasticsearch==8.10.0
 python-dotenv
 requests
 tqdm
+pandas
+feedparser
+requests
