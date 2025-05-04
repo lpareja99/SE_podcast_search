@@ -47,6 +47,37 @@ def get_chunks_by_episode(episode_id, index_name, es=None, debug=True):
     return results
 
 
+def get_suggested_query(query_term, client, index_name):
+    """
+    Runs a suggest query and returns the corrected phrase, if different.
+    """
+    suggest_query = {
+        "suggest": {
+            "suggestion": {
+                "text": query_term,
+                "term": {
+                    "field": "chunks.sentence",
+                    "suggest_mode": "always",
+                    "min_word_length": 2,
+                    "max_edits": 2,
+                    "prefix_length": 1
+                }
+            }
+        }
+    }
+
+    try:
+        response = client.search(index=index_name, body=suggest_query)
+        suggestions = response["suggest"]["suggestion"]
+        print(suggestions)
+        corrected = [
+            entry["options"][0]["text"] if entry["options"] else entry["text"]
+            for entry in suggestions
+        ]
+        return " ".join(corrected)
+    except Exception:
+        return None
+
 
 def bm25_search(query_term, index_name, top_k=1, es=None):
     
@@ -132,45 +163,6 @@ def mlt_search(query_term, selected_chunks, client, index_name, size=10):
     return hits
 
 
-def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True, selected_episodes = None):
-    client = es or get_es()
-    results = []
-    
-    if selected_episodes:
-        hits = mlt_search(query_term, selected_episodes, client, index_name, top_k)
-        
-    else:
-    
-        response = bm25_search(query_term, index_name, top_k = 10, es = client)
-        hits = response.get("hits", {}).get("hits", [])
-
-
-    for hit in hits:
-        source = hit["_source"]
-        highlight_raw = hit.get("highlight", {}).get("chunks.sentence", [None])[0]
-        highlight_clean = strip_highlight_tags(highlight_raw)
-
-        best_chunk = next(
-            (chunk for chunk in source.get("chunks", []) 
-             if highlight_clean and highlight_clean.lower() in chunk["sentence"].lower()),
-            source.get("chunks", [{}])[0]
-        )
-        
-        all_chunks_result = get_chunks_by_episode(source["episode_id"], index_name, es=client, debug=True)
-        n_chunks_result = add_chunks_together(all_chunks_result, best_chunk.get("sentence"), chunk_size = chunk_size)
-
-        results.append({
-            "show_id": source["show_id"],
-            "episode_id": source["episode_id"],
-            "score": hit["_score"],
-            "start_time" : n_chunks_result.get("start_time"),
-            "end_time" : n_chunks_result.get("end_time"),
-            "chunk": highlight_words(n_chunks_result.get("chunk"),query_term)            
-        })
-
-    return results
-
-
 def add_chunks_together(chunks, matched_chunk, chunk_size=30):
    
     chunks_to_merge = chunk_size // 30
@@ -211,6 +203,72 @@ def add_chunks_together(chunks, matched_chunk, chunk_size=30):
         'end_time': end_time,
         'chunk': combined_sentence
     }
+
+
+def format_hits(hits, query_term, chunk_size=3, client=None, index_name=INDEX_NAME):
+    results = []
+    
+    for hit in hits:
+        source = hit["_source"]
+        highlight_raw = hit.get("highlight", {}).get("chunks.sentence", [None])[0]
+        highlight_clean = strip_highlight_tags(highlight_raw)
+
+        best_chunk = next(
+            (chunk for chunk in source.get("chunks", []) 
+             if highlight_clean and highlight_clean.lower() in chunk["sentence"].lower()),
+            source.get("chunks", [{}])[0]
+        )
+        
+        all_chunks_result = get_chunks_by_episode(source["episode_id"], index_name, es=client, debug=True)
+        n_chunks_result = add_chunks_together(all_chunks_result, best_chunk.get("sentence"), chunk_size = chunk_size)
+
+        results.append({
+            "show_id": source["show_id"],
+            "episode_id": source["episode_id"],
+            "score": hit["_score"],
+            "start_time" : n_chunks_result.get("start_time"),
+            "end_time" : n_chunks_result.get("end_time"),
+            "chunk": highlight_words(n_chunks_result.get("chunk"),query_term), 
+            "query": hit["_source"].get("query", query_term)            
+        })
+        
+    return results
+
+
+
+def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_size = 30, debug = True, selected_episodes = None):
+    client = es or get_es()
+    
+    if selected_episodes:
+        hits = mlt_search(query_term, selected_episodes, client, index_name, top_k)
+        
+        if len(hits) < top_k:
+            if debug:
+                print(f"Not enough results for query: {query_term}. Attempting suggestions...")
+            corrected = get_suggested_query(query_term, client, index_name)
+            if corrected and corrected.lower() != query_term.lower():
+                if debug:
+                    print(f"Using suggested query: {corrected}")
+                hits = mlt_search(corrected, selected_episodes, client, index_name, top_k)
+                query_term = corrected
+        
+    else:
+    
+        response = bm25_search(query_term, index_name, top_k = 10, es = client)
+        hits = response.get("hits", {}).get("hits", [])
+        
+        if len(hits) < top_k:
+            if debug:
+                print(f"Not enough results for query: {query_term}. Attempting suggestions...")
+            corrected = get_suggested_query(query_term, client, index_name)
+            if corrected and corrected.lower() != query_term.lower():
+                if debug:
+                    print(f"Using suggested query: {corrected}")
+                response = bm25_search(corrected, index_name, top_k=top_k, es=client)
+                hits = response.get("hits", {}).get("hits", [])
+                query_term = corrected
+
+    return format_hits(hits, query_term, chunk_size=chunk_size, client=client)
 
 
 
