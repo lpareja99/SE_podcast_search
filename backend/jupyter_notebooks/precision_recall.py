@@ -24,7 +24,7 @@ def compute_metrics(file_path, threshold=0.5, k=10):
     recall_scores = {}
     ndcg_scores = {}
 
-    total_relevant = 100  # you can adapt this based on ground truth
+    total_relevant = 100
 
     for i, col in enumerate(metric_cols):
         retrieved = 0
@@ -40,7 +40,7 @@ def compute_metrics(file_path, threshold=0.5, k=10):
             if relevance == 1:
                 relevant_retrieved += 1
 
-            # For nDCG, we treat score as the relevance score directly
+
             relevance_list.append((doc_id, score))
 
         precision = relevant_retrieved / retrieved if retrieved else 0
@@ -68,5 +68,4 @@ def compute_metrics(file_path, threshold=0.5, k=10):
         print(f"{col}: {val:.4f}")
     print(ndcg_scores.values())
 
-# Example usage
 compute_metrics("phrase_nice_morning.txt", threshold=0.5, k=10)
