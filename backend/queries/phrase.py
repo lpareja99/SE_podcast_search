@@ -1,5 +1,6 @@
 from config import get_es
 import re
+import itertools
 
 INDEX_NAME = "podcast_transcripts"
 
@@ -31,16 +32,38 @@ def get_suggested_phrase(phrase, es, index_name):
     try:
         suggest_response = es.search(index=index_name, body=suggest_query)
         suggestions = suggest_response["suggest"]["word_suggest"]
-        corrected_words = []
-
-        for entry in suggestions:
-            if entry["options"]:
-                corrected_words.append(entry["options"][0]["text"])
+        sugested_words = []
+        sugested_scores = []
+        words = []
+        scores = []
+        for entry in suggestions: 
+            if len(entry["options"]) > 0:
+                for word in entry["options"]:
+                    words.append(word["text"])
+                    scores.append(word["score"])
             else:
-                corrected_words.append(entry["text"])
+                words.append(entry["text"])
+                scores.append(1)
+            sugested_words.append(words)
+            sugested_scores.append(scores)
+            words = []
+            scores = []
 
-        suggested_phrase = " ".join(corrected_words)
-        return suggested_phrase if suggested_phrase.lower() != phrase.lower() else None
+        #sugested_words = [[word["text"] if len(entry["options"])>0 else entry["text"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        #sugested_score = [[word["score"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        combinations = [' '.join(combo) for combo in itertools.product(*sugested_words)]
+        scores = [sum(combo) for combo in itertools.product(*sugested_scores)]
+
+
+        dict_combinations = {}
+        for i in range(len(combinations)):
+            dict_combinations[combinations[i]] = scores[i]
+        
+        dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
+        print(dict_combinations)
+        
+
+        return list(dict_combinations.keys())
 
     except (KeyError, IndexError):
         return None
@@ -77,22 +100,25 @@ def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):
         })
 
     if len(results) < top_k:
-        suggested_phrase = get_suggested_phrase(phrase, es, index_name)
-        if suggested_phrase:
-            new_response = do_query(suggested_phrase)
+        suggested_phrases = get_suggested_phrase(phrase, es, index_name)
+        for suggested_phrase in suggested_phrases:
+            if suggested_phrase and suggested_phrase.lower() != phrase.lower() and len(results) < top_k:
+                new_response = do_query(suggested_phrase)
 
-            for hit in new_response["hits"]["hits"]:
-                source = hit["_source"]
-                doc_id = (source["show_id"], source["episode_id"])
-                if doc_id not in seen:
-                    results.append({
-                        "show_id": source["show_id"],
-                        "episode_id": source["episode_id"],
-                        "query": suggested_phrase
-                    })
-                    seen.add(doc_id)
-                if len(results) >= top_k:
-                    break
+                for hit in new_response["hits"]["hits"]:
+                    source = hit["_source"]
+                    doc_id = (source["show_id"], source["episode_id"])
+                    if doc_id not in seen:
+                        results.append({
+                            "show_id": source["show_id"],
+                            "episode_id": source["episode_id"],
+                            "query": suggested_phrase
+                        })
+                        seen.add(doc_id)
+                    if len(results) >= top_k:
+                        break
+            if len(results) >= top_k:
+                break
 
     return results
 
@@ -129,6 +155,8 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
         score = phrase.lower() in chunk["sentence"].lower()
         if score:
             best_chunk = chunk
+            if len(doc["chunks"]) == doc["chunks"].index(chunk) + 1 :
+                break
             next_chunk = doc["chunks"][doc["chunks"].index(chunk) + 1]
             
             endTime = get_time_from_string(next_chunk["endTime"])
@@ -273,6 +301,6 @@ def phrase_query(phrase, index_name= INDEX_NAME, top_k = 10, es = None, chunk_si
     
 if __name__ == "__main__":  
     es = get_es()
-    q = "climte chnge"
+    q = "th climat chnge"
     results = phrase_query(q, index_name=INDEX_NAME, top_k = 10, es = es, chunk_size = 60, debug = True)
  
