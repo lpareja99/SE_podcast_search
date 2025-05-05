@@ -1,6 +1,8 @@
 import re
 from tqdm import tqdm
 from config import get_es
+import itertools
+
 
 INDEX_NAME = "podcast_transcripts"
 
@@ -87,14 +89,11 @@ def handle_suggestions(query_term, client, index_name, hits, seen, size=10):
         pass
     
     
-def get_suggested_query(query_term, client, index_name):
-    """
-    Runs a suggest query and returns the corrected phrase, if different.
-    """
+def get_suggested_query(phrase, es, index_name):
     suggest_query = {
         "suggest": {
-            "suggestion": {
-                "text": query_term,
+            "word_suggest": {
+                "text": phrase,
                 "term": {
                     "field": "chunks.sentence",
                     "suggest_mode": "always",
@@ -107,16 +106,43 @@ def get_suggested_query(query_term, client, index_name):
     }
 
     try:
-        response = client.search(index=index_name, body=suggest_query)
-        suggestions = response["suggest"]["suggestion"]
-        print(suggestions)
-        corrected = [
-            entry["options"][0]["text"] if entry["options"] else entry["text"]
-            for entry in suggestions
-        ]
-        return " ".join(corrected)
-    except Exception:
-        return None
+        suggest_response = es.search(index=index_name, body=suggest_query)
+        suggestions = suggest_response["suggest"]["word_suggest"]
+        sugested_words = []
+        sugested_scores = []
+        words = []
+        scores = []
+        for entry in suggestions: 
+            if len(entry["options"]) > 0:
+                for word in entry["options"]:
+                    words.append(word["text"])
+                    scores.append(word["score"])
+            else:
+                words.append(entry["text"])
+                scores.append(1)
+            sugested_words.append(words)
+            sugested_scores.append(scores)
+            words = []
+            scores = []
+
+        #sugested_words = [[word["text"] if len(entry["options"])>0 else entry["text"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        #sugested_score = [[word["score"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        combinations = [' '.join(combo) for combo in itertools.product(*sugested_words)]
+        scores = [sum(combo) for combo in itertools.product(*sugested_scores)]
+
+
+        dict_combinations = {}
+        for i in range(len(combinations)):
+            dict_combinations[combinations[i]] = scores[i]
+        
+        dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
+        print(dict_combinations)
+        
+
+        return list(dict_combinations.keys())
+
+    except (KeyError, IndexError):
+        return []
 
 
     
@@ -240,31 +266,43 @@ def intersection_query(query_term, chunk_size, selected_episodes=None):
         print("MLT hits", hits)
         print(len(hits))
         if len(hits) < size:
-            corrected = get_suggested_query(query_term, client, INDEX_NAME)
-            if corrected and corrected.lower() != query_term.lower():
-                hits = mlt_search(corrected, selected_episodes, client, INDEX_NAME, size)
-                query_term = corrected
+            correcteds = get_suggested_query(query_term, client, INDEX_NAME)
+            for corrected in correcteds:
+                if corrected and corrected.lower() != query_term.lower():
+                    hits += mlt_search(corrected, selected_episodes, client, INDEX_NAME, size)
+                    query_term = corrected
+                if len(hits) >= size:
+                    break
     else:
         hits = run_query(query_term, client, INDEX_NAME, size)
+        print(len(hits))
         if len(hits) < size:
-            corrected = get_suggested_query(query_term, client, INDEX_NAME)
-            if corrected and corrected.lower() != query_term.lower():
-                hits = run_query(corrected, client, INDEX_NAME, size)
-                query_term = corrected
+
+            correcteds = get_suggested_query(query_term, client, INDEX_NAME)
+            for corrected in correcteds:
+                if corrected and corrected.lower() != query_term.lower():
+                    hits += run_query(corrected, client, INDEX_NAME, size)
+                    print(len(hits))    
+                    query_term = corrected
+                if len(hits) >= size:
+                    break
+
 
     return format_hits(hits, query_term, n)
 
 
 # Main Function - for testing the script
 def main():
-    query_term = 'ddog cat'
+    query_term = 'ddog caats'
     client = get_es()
-    hits = intersection_query(query_term, client, INDEX_NAME, size=10)
-    results = format_hits(hits, query_term, n=3)
-    print(f"found {len(results)} matching chunks")
-    if results:
+    hits = intersection_query(query_term, 30)
+    print("hits")
+    print(hits[0])
+    #results = format_hits(hits, query_term, n=3)
+    print(f"found {len(hits)} matching chunks")
+    if hits:
         print("\n example result:")
-        for sample in results[:5]:
+        for sample in hits[:10]:
             print(f"epi id: {sample['episode_id']}")
             print(f"show idx: {sample['show_id']}")
             print(f"For query: {sample['query']}")
