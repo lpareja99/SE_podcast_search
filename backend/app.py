@@ -1,4 +1,3 @@
-import pprint
 from flask import Flask, json, jsonify, request
 from config import get_es
 from flask_cors import CORS
@@ -73,25 +72,28 @@ def handleFilter(params):
 def handleType(params):
     match params['type']:
         case "Intersection":
-            return intersection_query(
+            results = intersection_query(
                 params["q"], 
                 params["time"], 
                 selected_episodes=params["selectedEpisodes"]
             )
+            
         case "Phrase":
-            return phrase_query(
+            results =  phrase_query(
                 phrase=params["q"], 
                 chunk_size=params['time'], 
                 selected_episodes=params["selectedEpisodes"]
             )
         case "Ranking":
-            return bm25_query(
+            results =  bm25_query(
                 query_term=params["q"], 
                 chunk_size= params["time"], 
                 selected_episodes=params["selectedEpisodes"]
             )
         case _:
             raise ValueError(f"Unsupported query type: {params['type']}")
+        
+    return results
 
 if __name__ == "__main__":
     app.run(debug=True)

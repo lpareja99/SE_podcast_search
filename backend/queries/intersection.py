@@ -136,7 +136,7 @@ def get_suggested_query(phrase, es, index_name):
             dict_combinations[combinations[i]] = scores[i]
         
         dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
-        print(dict_combinations)
+        #print(dict_combinations)
         
 
         return list(dict_combinations.keys())
@@ -226,7 +226,7 @@ def get_n_30s_chunks(chunks, idx, n=3):
     }
 
 
-def format_hits(hits, query_term, n=3):
+def format_hits(hits, query_term, n=3, mlt=True):
     """
     Given a list of documents (hits), selects the best chunk from each one that contains all query terms and returns:
     - episode_id, show_id, query
@@ -236,10 +236,13 @@ def format_hits(hits, query_term, n=3):
     for hit in tqdm(hits, disable=False):
         q_term = hit["_source"].get("query", query_term)
         chunk_indices = get_intersection_chunk_indices(hit, q_term)
-        if not chunk_indices:
+        
+        idx = 0 if mlt and hit["_source"].get("chunks") else (chunk_indices[0] if chunk_indices else None)
+        if idx is None:
             continue
-        idx = chunk_indices[0]
+
         chunk_data = get_n_30s_chunks(hit["_source"]["chunks"], idx, n=n)
+            
         chunk_data.update({
             "episode_id": hit["_source"]["episode_id"],
             "show_id": hit["_source"]["show_id"],
@@ -261,10 +264,8 @@ def intersection_query(query_term, chunk_size, selected_episodes=None):
     n = int(chunk_size / 30)
 
     if selected_episodes:
-        print("executing MLT search")
         hits = mlt_search(query_term, selected_episodes, client, INDEX_NAME, size)
-        print("MLT hits", hits)
-        print(len(hits))
+       
         if len(hits) < size:
             correcteds = get_suggested_query(query_term, client, INDEX_NAME)
             for corrected in correcteds:
@@ -273,22 +274,23 @@ def intersection_query(query_term, chunk_size, selected_episodes=None):
                     query_term = corrected
                 if len(hits) >= size:
                     break
+        
+        result =  format_hits(hits, query_term, n, mlt=True)
     else:
         hits = run_query(query_term, client, INDEX_NAME, size)
-        print(len(hits))
         if len(hits) < size:
 
             correcteds = get_suggested_query(query_term, client, INDEX_NAME)
             for corrected in correcteds:
                 if corrected and corrected.lower() != query_term.lower():
                     hits += run_query(corrected, client, INDEX_NAME, size)
-                    print(len(hits))    
                     query_term = corrected
                 if len(hits) >= size:
                     break
-
-
-    return format_hits(hits, query_term, n)
+                
+        result =  format_hits(hits, query_term, n, mlt=False)
+    
+    return result
 
 
 # Main Function - for testing the script
