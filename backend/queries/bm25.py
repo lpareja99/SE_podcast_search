@@ -1,5 +1,6 @@
 from config import get_es
 import re
+import itertools
 
 INDEX_NAME = "podcast_transcripts"
 
@@ -67,16 +68,44 @@ def get_suggested_query(query_term, client, index_name):
     }
 
     try:
-        response = client.search(index=index_name, body=suggest_query)
-        suggestions = response["suggest"]["suggestion"]
-        print(suggestions)
-        corrected = [
-            entry["options"][0]["text"] if entry["options"] else entry["text"]
-            for entry in suggestions
-        ]
-        return " ".join(corrected)
-    except Exception:
-        return None
+        suggest_response = client.search(index=index_name, body=suggest_query)
+        suggestions = suggest_response["suggest"]["suggestion"]
+        sugested_words = []
+        sugested_scores = []
+        words = []
+        scores = []
+        for entry in suggestions: 
+            if len(entry["options"]) > 0:
+                for word in entry["options"]:
+                    words.append(word["text"])
+                    scores.append(word["score"])
+            else:
+                words.append(entry["text"])
+                scores.append(1)
+            sugested_words.append(words)
+            sugested_scores.append(scores)
+            words = []
+            scores = []
+
+        combinations = [' '.join(combo) for combo in itertools.product(*sugested_words)]
+        scores = [sum(combo) for combo in itertools.product(*sugested_scores)]
+
+
+        dict_combinations = {}
+        for i in range(len(combinations)):
+            dict_combinations[combinations[i]] = scores[i]
+        
+        dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
+        print(dict_combinations)
+        
+
+        return list(dict_combinations.keys())
+
+    except (KeyError, IndexError) as e:
+        print(f"Error in suggestion query for: {query_term}")
+        print(e)
+
+        return []
 
 
 def bm25_search(query_term, index_name, top_k=1, es=None):
@@ -245,12 +274,16 @@ def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_s
         if len(hits) < top_k:
             if debug:
                 print(f"Not enough results for query: {query_term}. Attempting suggestions...")
-            corrected = get_suggested_query(query_term, client, index_name)
-            if corrected and corrected.lower() != query_term.lower():
-                if debug:
-                    print(f"Using suggested query: {corrected}")
-                hits = mlt_search(corrected, selected_episodes, client, index_name, top_k)
-                query_term = corrected
+            correcteds = get_suggested_query(query_term, client, index_name)
+            print(correcteds)
+            for corrected in correcteds:
+                if corrected and corrected.lower() != query_term.lower():
+                    if debug:
+                        print(f"Using suggested query: {corrected}")
+                    hits = mlt_search(corrected, selected_episodes, client, index_name, top_k)
+                    query_term = corrected
+                if len(hits) >= top_k:
+                    break
         
     else:
     
@@ -260,13 +293,16 @@ def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_s
         if len(hits) < top_k:
             if debug:
                 print(f"Not enough results for query: {query_term}. Attempting suggestions...")
-            corrected = get_suggested_query(query_term, client, index_name)
-            if corrected and corrected.lower() != query_term.lower():
-                if debug:
-                    print(f"Using suggested query: {corrected}")
-                response = bm25_search(corrected, index_name, top_k=top_k, es=client)
-                hits = response.get("hits", {}).get("hits", [])
-                query_term = corrected
+            correcteds = get_suggested_query(query_term, client, index_name)
+            for corrected in correcteds:
+                if corrected and corrected.lower() != query_term.lower():
+                    if debug:
+                        print(f"Using suggested query: {corrected}")
+                    response = bm25_search(corrected, index_name, top_k=top_k, es=client)
+                    hits = response.get("hits", {}).get("hits", [])
+                    query_term = corrected
+                if len(hits) >= top_k:
+                    break
 
     return format_hits(hits, query_term, chunk_size=chunk_size, client=client)
 
@@ -274,7 +310,14 @@ def bm25_query(query_term, index_name=INDEX_NAME, top_k = 10, es = None, chunk_s
 
 if __name__ == "__main__":  
     es = get_es()
-    query_term = "dog"
-    index_name = "podcast_transcripts2"
+    query_term = "a biig cat"
+    index_name = "podcast_transcripts"
     results = bm25_query(query_term, index_name, top_k = 3, es = es, chunk_size = 90, debug = True)
-    print(results)
+    if results:
+        print("\n example result:")
+        for sample in results[:10]:
+            print(f"epi id: {sample['episode_id']}")
+            print(f"show idx: {sample['show_id']}")
+            print(f"For query: {sample['query']}")
+            print(f"Chunk: {sample['chunk']}")
+            print("------------------\n\n")

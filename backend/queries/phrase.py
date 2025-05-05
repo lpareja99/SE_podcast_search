@@ -66,7 +66,7 @@ def get_suggested_phrase(phrase, es, index_name):
         return list(dict_combinations.keys())
 
     except (KeyError, IndexError):
-        return None
+        return []
     
     
 def phrase_search(phrase, index_name=INDEX_NAME, top_k=10, es=None):

@@ -1,5 +1,5 @@
 from config import get_es
-
+import itertools 
 INDEX_NAME = "episodes"
 
 
@@ -46,18 +46,41 @@ def get_suggested_query(query_text, search_field, index_name, es):
     try:
         suggest_response = es.search(index=index_name, body=suggest_query)
         suggestions = suggest_response["suggest"]["suggestion"]
-        corrected_words = []
-        for entry in suggestions:
-            if entry["options"]:
-                corrected_words.append(entry["options"][0]["text"])
+        sugested_words = []
+        sugested_scores = []
+        words = []
+        scores = []
+        for entry in suggestions: 
+            if len(entry["options"]) > 0:
+                for word in entry["options"]:
+                    words.append(word["text"])
+                    scores.append(word["score"])
             else:
-                corrected_words.append(entry["text"])
+                words.append(entry["text"])
+                scores.append(1)
+            sugested_words.append(words)
+            sugested_scores.append(scores)
+            words = []
+            scores = []
 
-        corrected_query = " ".join(corrected_words)
-        return corrected_query if corrected_query.lower() != query_text.lower() else query_text
-    except Exception as e:
-        print(f"Suggestion query failed: {e}")
-        return query_text
+        #sugested_words = [[word["text"] if len(entry["options"])>0 else entry["text"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        #sugested_score = [[word["score"] for word in entry["options"]] for entry in suggestions if entry["options"]] 
+        combinations = [' '.join(combo) for combo in itertools.product(*sugested_words)]
+        scores = [sum(combo) for combo in itertools.product(*sugested_scores)]
+
+
+        dict_combinations = {}
+        for i in range(len(combinations)):
+            dict_combinations[combinations[i]] = scores[i]
+        
+        dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
+        print(dict_combinations)
+        
+
+        return list(dict_combinations.keys())
+
+    except (KeyError, IndexError):
+        return []
 
 
 def format_hits(hits, query_text):
@@ -120,15 +143,21 @@ def search_episodes(query_text, search_field="show_name", index_name=INDEX_NAME,
     # Step 1: Initial search
     response = run_query(query_text)
     hits = response["hits"]["hits"]
+    for hit in hits:
+        hit["_source"]["query"] = query_text  # Add the query text to each hit
+    print(hits)
 
     # Step 2: Suggestion fallback if results are insufficient
     corrected_query = query_text  # Default to the original query
     if len(hits) < top_k:
-        suggested_query = get_suggested_query(query_text, search_field, index_name, es)
-        if suggested_query.lower() != query_text.lower():
-            corrected_query = suggested_query
-            suggest_response = run_query(corrected_query)
-            hits.extend(suggest_response["hits"]["hits"])
+        suggested_querys = get_suggested_query(query_text, search_field, index_name, es)
+        for suggested_query in suggested_querys:
+            if suggested_query.lower() != query_text.lower():
+                corrected_query = suggested_query
+                suggest_response = run_query(corrected_query)
+                hits.extend(suggest_response["hits"]["hits"])
+            if len(hits) >= top_k:
+                break
 
     # Step 3: More Like This (MLT) fallback if results are still insufficient
     if len(hits) < top_k:
@@ -161,21 +190,22 @@ def debug_print(results):
         print(f"RSS Link: {result.get('rss_link', 'N/A')}")
         print(f"Show ID: {result.get('show_id', 'N/A')}")
         print(f"Episode ID: {result.get('episode_id', 'N/A')}")
+        print(f"Query: {result.get('query', 'N/A')}")
         print("-" * 50)
 
 
 if __name__ == "__main__":
     es = get_es()
-    query_text = "Olivia"  # Replace with your search text
+    query_text = "a biig cat"  # Replace with your search text
     print(f"\n\n🔍 Searching for '{query_text}'...\n")
     print("🔍 Searching by Publisher...\n")
-    results = search_episodes(query_text, search_field="publisher", es=es, top_k=2)
+    results = search_episodes(query_text, search_field="publisher", es=es, top_k=10)
     debug_print(results)
 
     print("\n\n🔍 Searching by Show Name...\n")
-    results = search_episodes(query_text, search_field="show_name", es=es, top_k=2)
+    results = search_episodes(query_text, search_field="show_name", es=es, top_k=10)
     debug_print(results)
 
     print("\n\n🔍 Searching by Episode Title...\n")
-    results = search_episodes(query_text, search_field="episode_name", es=es, top_k=2)
+    results = search_episodes(query_text, search_field="episode_name", es=es, top_k=10)
     debug_print(results)
