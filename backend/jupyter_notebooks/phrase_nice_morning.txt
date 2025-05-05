@@ -1,0 +1,11 @@
+query_id, episode_name, show_name, episode_id, 30s, 1m, 2m, 3m, 5m
+0,Why Women Play Games & Ex Sending Subliminal Messages Through Social Media, Alpha Male Strategies, 5oEdifmicL9Rd5k53Vh3Oi, 2,2,2,2,2
+0,OCTOPUS SOUNDS - EPISODE 8: A TURKEY INTERVIEW? BEST BECCA AND THE SHOW RIGHT NOWWWW, Octopus Sounds, 4wLVtmaCSJBJF3oNIQi3VD, 1,1,1,1,1
+0,Caitriona Jennings - Olympian & Ultra Runner, No Finish Line, 2pbqyZxmW5is10al3XT7w1, 2,2,2,2,2
+0,How to Stop Counting Meals/Calories, The Happy Eater, 2lEnLtLPUpRge55Sq82iG5, 2,2,2,2,2
+0,What Lies Under The Ice, CreepyPastas with Wowman212, 3yJdIEma2tGyVva67pyqSQ, 3,3,3,3,3
+0,10 Ways to Uplevel Your Everyday,Positive Practice, 6Vv05gcNg8cUeLnOSHOCoC, 3,3,3,3,3
+0,Ep. 57: How I Became a Morning Person, Your Daily Dose of Awesome, 4pIwX9htiv1YFP0BRAxnyq, 3,3,3,3,3
+0,Famous Fates: Al Capone, Historical Figures, 3iFwYwzabLKsSktBhUVCjn, 1,1,1,1,1
+0,Thanksgiving Memories - The Napzok Files, The Napzok Files, 7kF5SBUq0eBTNeDYvBkMTU, 3,3,3,3,3
+0,The Power of 4, The Power of 4, 2yTjARKCG7Tu5aXvMfgKq6, 2,2,2,2,2
