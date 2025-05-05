@@ -1,0 +1,27 @@
+query_id, episode_name, show_name, episode_id, 2m
+0,'Showering in the morning or before bed' - Episode 22 - BBH & Esiotrot,The Weirdest Talk Show,41jhdrTXp5G8roRKU82FqZ,1
+0,TCRNo7 Day 06,Pilgrim Radio,4q7cSYdBYq7yONUgiEVA0E,2
+0,The final days of TCR No7,Pilgrim Radio,0HdhtdR3Uhe6CMhPGRRJnr,3
+0,THE NICEST THING I'VE DONE THIS YEAR,The Morning Rush,4nMVfR0gkasUo3V73aBJKK,1
+0,042 - Sleep, Waking Up Early and The Mamba Mentality,The Weekly Warrior Podcast,32MiS3uiNaXmFfnzNnlzgy,2
+0,Our Top 5 Non Negotiable's For Our Ideal Morning Routine! | Episode 4,Mind Movement Matter,32mwzVgQsicgjqPnDP5Gh9,1
+0,Bring Your Parent To School Day!,Enlightening English Language Learners,2Fs76Rsko5D1RNCiN1yE0A,2
+0,I DON'T LIKE YOUR CHRISTMAS GIFT,The Morning Rush,1Ifz0KuyUNrslTP5nuNvLU,0
+0,TCRNo7 Day 9,Pilgrim Radio,2a2p0VoEz0l2KRQDFs2hQL,2
+0,#08 Morning Routines, The Alpha Babes Podcast,1dEWYnZAMzWDyEtVTYHbvp,3
+
+
+--> selected n3 The final days of TCR No7 since it have score of 3
+query_id, episode_name, show_name, episode_id, relation with query, relation with selected
+
+1, The final days of TCR No7, Pilgrim Radio, 0HdhtdR3Uhe6CMhPGRRJnr, 0, 2
+1, GBDURO - Day 10/11, Pilgrim Radio, 4g6SXmXT679Fk6gIIzvlDF,2, 3
+1, GBDURO Day 0-1, Pilgrim Radio, 2d8Mu7hPvE5JjKETVhUVPY,1, 2, 2
+1, The final days of TCR No7,Pilgrim Radio,0HdhtdR3Uhe6CMhPGRRJn, 2, 2
+1, TCRNo7 Day 12, Pilgrim Radio, 7urPGlqLQFca7GuS4ULQXj, 1, 2
+1, Bikes and Guitars an interview with Francis Cade, Mary Spender's 'Tuesday Talks', 3vSDP0NTUv3fF5jN29TxuS,2, 0
+1, #61 Things I learnt running my First Marathon. Solo Episode, The Ricky Long Podcast, 2a6kMreXkRYF9eslROGNSh, 0, 0
+1, TCRNo7 Day 9, Pilgrim Radio, 2a2p0VoEz0l2KRQDFs2hQL, 1, 2
+1, Episode 16: Long Rides Long Runs and Long Swims - This Is What Ironman is Made Of, Road to Ironman 2020: Becoming a Better Me, 3g9n4EgWiP0LvgYNVtFdQx, 0, 0
+1, Day five on TCRNo7, Pilgrim Radio, 0t4o065Kp5f4VJjbLSaL4E, 1, 2
+

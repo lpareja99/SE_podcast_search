@@ -136,8 +136,7 @@ def get_suggested_query(phrase, es, index_name):
             dict_combinations[combinations[i]] = scores[i]
         
         dict_combinations = dict(sorted(dict_combinations.items(), key=lambda item: item[1], reverse=True))
-        #print(dict_combinations)
-        
+        print(dict_combinations)
 
         return list(dict_combinations.keys())
 
