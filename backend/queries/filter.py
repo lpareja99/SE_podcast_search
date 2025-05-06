@@ -103,7 +103,10 @@ def format_hits(hits, query_text):
                 "description": hit["_source"].get("episode_description", ""),
                 "rss_link": hit["_source"].get("rss_link", ""),
                 "language": hit["_source"].get("language", ""),
-                "query": query_text
+                "query": query_text,
+                "audio": hit["_source"].get("audio_url", ""),
+                "episode_image": hit["_source"].get("image_episode", ""),
+                "show_image": hit["_source"].get("image_show", "")
             })
 
     return results
