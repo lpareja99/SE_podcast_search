@@ -449,15 +449,17 @@ const Search = () => {
                                                                         </span>
                                                                         <span className="text-muted">From beginning</span>
                                                                   </li>
-                                                                    <li className="list-group-item d-flex justify-content-start align-items-center gap-2"
-                                                                        onClick={() => handlePlayAudio(parseFloat(selectedShow.transcript.start_time))}
-                                                                        style={{ cursor: "pointer" }}
-                                                                    >
-                                                                        <span className="fw-bold">
-                                                                            <i className="bi bi-fast-forward-fill"></i>
-                                                                        </span>
-                                                                        <span className="text-muted">From transcript</span>
-                                                                    </li>
+                                                                   {selectedShow.transcript.chunk && (
+                                                                        <li className="list-group-item d-flex justify-content-start align-items-center gap-2"
+                                                                            onClick={() => handlePlayAudio(parseFloat(selectedShow.transcript.start_time))}
+                                                                            style={{ cursor: "pointer" }}
+                                                                        >
+                                                                            <span className="fw-bold">
+                                                                                <i className="bi bi-fast-forward-fill"></i>
+                                                                            </span>
+                                                                            <span className="text-muted">From transcript</span>
+                                                                        </li>
+                                                                    )}
                                                                 </ul>
                                                             </div>
                                                         </div>
