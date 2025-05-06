@@ -14,14 +14,14 @@ query_id, episode_name, show_name, episode_id, 2m
 --> selected n3 The final days of TCR No7 since it have score of 3
 query_id, episode_name, show_name, episode_id, relation with query, relation with selected
 
-1, The final days of TCR No7, Pilgrim Radio, 0HdhtdR3Uhe6CMhPGRRJnr, 0, 2
-1, GBDURO - Day 10/11, Pilgrim Radio, 4g6SXmXT679Fk6gIIzvlDF,2, 3
-1, GBDURO Day 0-1, Pilgrim Radio, 2d8Mu7hPvE5JjKETVhUVPY,1, 2, 2
-1, The final days of TCR No7,Pilgrim Radio,0HdhtdR3Uhe6CMhPGRRJn, 2, 2
-1, TCRNo7 Day 12, Pilgrim Radio, 7urPGlqLQFca7GuS4ULQXj, 1, 2
-1, Bikes and Guitars an interview with Francis Cade, Mary Spender's 'Tuesday Talks', 3vSDP0NTUv3fF5jN29TxuS,2, 0
-1, #61 Things I learnt running my First Marathon. Solo Episode, The Ricky Long Podcast, 2a6kMreXkRYF9eslROGNSh, 0, 0
-1, TCRNo7 Day 9, Pilgrim Radio, 2a2p0VoEz0l2KRQDFs2hQL, 1, 2
-1, Episode 16: Long Rides Long Runs and Long Swims - This Is What Ironman is Made Of, Road to Ironman 2020: Becoming a Better Me, 3g9n4EgWiP0LvgYNVtFdQx, 0, 0
-1, Day five on TCRNo7, Pilgrim Radio, 0t4o065Kp5f4VJjbLSaL4E, 1, 2
+1, The final days of TCR No7, Pilgrim Radio, 0HdhtdR3Uhe6CMhPGRRJnr, 2
+1, GBDURO - Day 10/11, Pilgrim Radio, 4g6SXmXT679Fk6gIIzvlDF, 3
+1, GBDURO Day 0-1, Pilgrim Radio, 2d8Mu7hPvE5JjKETVhUVPY, 2
+1, The final days of TCR No7,Pilgrim Radio,0HdhtdR3Uhe6CMhPGRRJn, 2
+1, TCRNo7 Day 12, Pilgrim Radio, 7urPGlqLQFca7GuS4ULQXj, 2
+1, Bikes and Guitars an interview with Francis Cade, Mary Spender's 'Tuesday Talks', 3vSDP0NTUv3fF5jN29TxuS, 0
+1, #61 Things I learnt running my First Marathon. Solo Episode, The Ricky Long Podcast, 2a6kMreXkRYF9eslROGNSh, 0
+1, TCRNo7 Day 9, Pilgrim Radio, 2a2p0VoEz0l2KRQDFs2hQL, 2
+1, Episode 16: Long Rides Long Runs and Long Swims - This Is What Ironman is Made Of, Road to Ironman 2020: Becoming a Better Me, 3g9n4EgWiP0LvgYNVtFdQx, 0
+1, Day five on TCRNo7, Pilgrim Radio, 0t4o065Kp5f4VJjbLSaL4E, 2
 
