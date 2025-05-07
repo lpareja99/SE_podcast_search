@@ -164,6 +164,13 @@ ELASTICSEARCH_URL=https://localhost:9200
 - `python ./backend/app.py`
 - `cd frontend` + `npm start`
 
+- Note: If you get an error similar to 
+```
+Error during search: Connection error caused by: ConnectionError(Connection error caused by: NewConnectionError(<elastic_transport._node._urllib3_chain_certs.HTTPSConnection object at 0x7f9e79371460>: Failed to establish a new connection: [Errno 111] Connection refused))
+127.0.0.1 - - [07/May/2025 11:55:04] "POST /search HTTP/1.1" 500 -
+```
+Check elasticsearch status using `sudo systemctl status elasticsearch.service`. If the active field is `failed` try to stpop the backend and restart elastic search service with the command `sudo systemctl restart elasticsearch.service`. Then start the back en service again (`python /backend/app.py`)
+
 
 
 
