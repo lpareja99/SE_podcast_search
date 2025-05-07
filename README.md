@@ -18,6 +18,8 @@
 
 ## General Information of the project
 
+### Task Given
+
 Wouldn’t it be great to find podcasts that discuss exactly what you are interested in at the moment? Or even better, to find the exact part of the podcast that discusses your topic of interest?  The task is to:
 
 1. Use Elasticsearch (https://github.com/elastic/elasticsearch) to index the transcriptions of the podcasts (You will obtain this data from Johan).
@@ -28,20 +30,29 @@ Wouldn’t it be great to find podcasts that discuss exactly what you are intere
 
 This task is inspired by the TREC 2020 podcasts track, task 1. More information on: https://www.aclweb.org/portal/content/trec-2020-podcasts-track-guidelines
 
+### What our Search Engine Can Do
+- UI design Spotify like for intuitive use by the user
+- Single endpoint /search that keeps front end clean and detach from backend.
+- Audio and image show display for enhanced experience for the user.
+- Audio for each episode can be played from the beguinning and from start time of the relevant transcript found.
+- Size of the transcript to search for and display can be vary from 30 sec to 5 min by the user. 
+- Highlight of relevant information on the transcript obtained. 
+- Elastic search implementation for fast and powerfull index management.
+- Types of general searchs avilable: Intersection, Phrase and Ranking (bm-25).
+- Additional search avialable by "filter" where user can look for specific results based on show name, episode title and author. 
+- Enhance search for queries with typos using "suggest" to provide user with a more complete experience in case of small typos. 
+- Basic relevance feedback implemented using "more_like_this" given a wuery and the relevant transcript of one or more selected episode.
+
 ## Technical information and set-up
 
 ### Technical Info 
-- Elastic Search 
+- Elastic Search:
+    - Main Page: https://www.elastic.co/docs/solutions/search
 - Front End:
-    - Posible frameworks:
-        - Angular: https://v16.angular.io/docs
         - React: https://react.dev/
-        - Flutter: https://flutter.dev/
-        - Vue: https://vuejs.org/
-    - Possible styling tools:
         - Bootstrap: https://vuejs.org/
-        - Tailwind: https://tailwindcss.com/docs/installation/using-postcss
-        - Material UI: https://mui.com/material-ui/?srsltid=AfmBOoqnoV-yBmk9uhwxMkZ-mck2v0gOfdXI4yKC4C-8wbU_9qS2iXqh
+com/docs/installation/using-postcss
+
 
 - Back End:
     - Flask: https://flask.palletsprojects.com/en/stable/
@@ -83,11 +94,12 @@ This task is inspired by the TREC 2020 podcasts track, task 1. More information 
 - Open browser on: sudo systemctl start kibana
 - Obtain elastic token: `sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana`
 - Obtain verification code: `sudo journalctl -u kibana | grep "verification code"`
+- Check access to kibana: http://localhost:5601/app/management/data/index_management/indices
 
-Useful parts of kirbana:
-- Tryout calls and endpoints: http://localhost:5601/app/dev_tools#/console/shell
 
 #### DB
+
+- Note: If you got the project by a zip file, you probably already have the transcrips and the structure of the transcripts correctly integrated.
 
 - Download DB: https://kth-my.sharepoint.com/personal/jboye_ug_kth_se/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fjboye%5Fug%5Fkth%5Fse%2FDocuments%2Fbox%5Ffiles%2Fpodcasts%2Dno%2Daudio%2D13GB%2Ezip&parent=%2Fpersonal%2Fjboye%5Fug%5Fkth%5Fse%2FDocuments%2Fbox%5Ffiles.
 
@@ -106,39 +118,40 @@ Useful parts of kirbana:
 - Create virtual environment: `python3 -m venv venv`
 - Activate veirtual environment: `source venv/bin/activate`
 
-#### Flask 
+#### Start Flask Project
 - `pip install -r requirements.txt`
-- `python app.py`
+- To get the backend running: `python app.py`
 
 #### React 
 
 - Install react
 - Install `pip install flask-cors`
+- Install node modules: `npm install`
 - To run the app: `npm start`
-
-
-### Set-up project (Windows)
-TBD
-
-### Set-up project (Mac)
-TBD
 
 ## Database Population
 
 ### Metadata Index:
 
 - Go to `/backend` folder.
-- If not already, copy your CA to teh backend folder and add your user and your passwrod to the `config.py` file.
-- Run `python3 load_metadata.py`
+- If not already, copy your CA to the backend folder and add your user and your passwrod to the `config.py` file.
+- Check if the file `final_podcast_table_all_with_unmatched.csv` exist on the folder index_creation. If not run the last cell on the python book `generate_metadata_with_audio.ipynb`. Take into account that it can take up to an hour to generate the csv file. Once the file is generated, place it on the `/backend/index_creation` folder.
+- Run `python3 ./index_creation/load_metadata_with_audio.py`
 - If succesfull check call by `curl --cacert http_ca.crt -X GET "https://localhost:9200/episodes/_search?pretty" -u elastic` input teh password and it should return json objects.
 - With Kibana access http://localhost:5601/app/dev_tools#/console/shell add `GET episodes/_count` and check that it return 105360.
 
 ### Transcripts Index:
 
-### Rss_headers:
+- Go to `/backend/index_creation` folder.
+- Run script `index_30s_chuncks.py` it can take a while.
 
-### summarization_test:
+
+## Run Project
+
+- Once all steps have been done you should be able to get the project running from the root of the project by running:
+- `python ./backend/app.py`
+- `cd frontend` + `npm start`
 
 
-## Tasks
+
 

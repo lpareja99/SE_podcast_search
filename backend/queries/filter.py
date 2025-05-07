@@ -112,7 +112,7 @@ def format_hits(hits, query_text):
     return results
 
 
-def search_episodes(query_text, search_field="show_name", index_name=INDEX_NAME, top_k=5, es=None):
+def search_episodes(query_text, search_field="show_name", index_name=INDEX_NAME, top_k=10, es=None):
     """
     Search episodes in the Elasticsearch index by a specified field, with suggestion and MLT fallback.
 

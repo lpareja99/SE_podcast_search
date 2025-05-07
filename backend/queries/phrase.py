@@ -128,8 +128,8 @@ def get_first_chunk(show_id, episode_id, phrase, index_name=INDEX_NAME, es=None,
     if es is None:
         es = get_es()
     
-    if chunk_size not in [30, 60, 90, 120, 180, 300]:
-        raise ValueError("chunk_size must be one of [30, 60, 90, 120, 180, 300] seconds")
+    if chunk_size not in [30, 60, 120, 180, 300]:
+        raise ValueError("chunk_size must be one of [30, 60, 120, 180, 300] seconds")
     
     #retrieve entry that match show_id and episode_id
     query = {
