@@ -1,9 +1,15 @@
 import csv
+import sys
+import os
 from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
-from config import get_es
+import urllib3
 
-# Initialize Elasticsearch client
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from backend.config import get_es
+
 es =  get_es()
 index_name = "episodes"
 file_path = "final_podcast_table_all_with_unmatched.csv"  # Path to the generated CSV file
