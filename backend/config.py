@@ -7,6 +7,6 @@ def get_es():
     return Elasticsearch(
         hosts=["https://localhost:9200"],
         http_auth=(os.getenv("ELASTIC_USERNAME"), os.getenv("ELASTIC_PASSWORD")),  
-        verify_certs=True,
+        verify_certs=False,
         ca_certs="http_ca.crt",
     )

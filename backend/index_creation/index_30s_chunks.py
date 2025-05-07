@@ -9,8 +9,8 @@ from tqdm import tqdm
 import urllib3
 
 INDEX_NAME = "podcast_transcripts"
-PARENT_FOLDER = "../podcasts-no-audio-13GB/summarization-testset/spotify-podcasts-2020/podcasts-transcripts-summarization-testset"
-ONLY_USE_N_JSON = 2000
+PARENT_FOLDER = "../../podcasts-no-audio-13GB/transcripts/spotify-podcasts-2020"
+ONLY_USE_N_JSON = None
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # to disable warnings: "HTTPS without verifying the server's SSL certificate"

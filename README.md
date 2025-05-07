@@ -82,8 +82,17 @@ com/docs/installation/using-postcss
             ca_certs="http_ca.crt",
         )
 '''
-- To obtain password and username: `sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic`
-- Add your username and password to `backend/.env` and install `pip install python-dotenv`
+- To obtain password and username: `sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic` (better if teh password does not have "=")
+- If the `/backend/.env` file exists add teh password to the file, otherwise create a new `.env` file at `/backend` folder level that looks like the:
+'''
+ELASTIC_PASSWORD={password}
+ELASTIC_USERNAME=elastic
+ELASTIC_TOKEN={token}
+ELASTIC_VERIFICTION_CODE={code_optional}
+ELASTICSEARCH_URL=https://localhost:9200
+'''
+
+- Install `pip install python-dotenv`
  
 ### Kibana instalation (to be able to see the data of elastic search)
 - `sudo apt update`
@@ -119,12 +128,14 @@ com/docs/installation/using-postcss
 - Activate veirtual environment: `source venv/bin/activate`
 
 #### Start Flask Project
+- Activate veirtual environment: `source venv/bin/activate`
 - `pip install -r requirements.txt`
 - To get the backend running: `python app.py`
 
 #### React 
 
-- Install react
+- Activate veirtual environment: `source venv/bin/activate`
+- Install react: TODO: check
 - Install `pip install flask-cors`
 - Install node modules: `npm install`
 - To run the app: `npm start`
@@ -149,6 +160,7 @@ com/docs/installation/using-postcss
 ## Run Project
 
 - Once all steps have been done you should be able to get the project running from the root of the project by running:
+- Activate veirtual environment: `source venv/bin/activate`
 - `python ./backend/app.py`
 - `cd frontend` + `npm start`
 
